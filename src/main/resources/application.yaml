@@ -1,0 +1,6 @@
+ktor:
+  application:
+    modules:
+      - id.walt.ApplicationKt.module
+  deployment:
+    port: 8080
