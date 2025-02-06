@@ -1,5 +1,5 @@
 package id.walt
 
-suspend fun main() {
+fun main() {
     println("Hello, World!")
 }

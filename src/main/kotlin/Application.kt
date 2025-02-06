@@ -1,5 +1,10 @@
 package id.walt
 
+import id.walt.web.configureHTTP
+import id.walt.web.configureRouting
+import id.walt.web.configureSecurity
+import id.walt.web.configureSerialization
+import id.walt.web.configureStatusPages
 import io.ktor.server.application.*
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
@@ -13,5 +18,6 @@ fun Application.module() {
     configureHTTP()
     configureSerialization()
    // configureDatabases()
+    configureStatusPages()
     configureRouting()
 }
