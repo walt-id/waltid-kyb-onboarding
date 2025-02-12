@@ -7,25 +7,17 @@ import io.ktor.server.routing.*
 import io.ktor.util.*
 
 fun Application.configureSecurity() {
-    authentication {
-        val myRealm = "MyRealm"
-        val usersInMyRealmToHA1: Map<String, ByteArray> = mapOf(
-            // pass="test", HA1=MD5("test:MyRealm:pass")="fb12475e62dedc5c2744d98eb73b8877"
-            "test" to hex("fb12475e62dedc5c2744d98eb73b8877")
-        )
+   authentication {
+         basic(name = "auth") {
+              realm = "Ktor Server"
+              validate { credentials ->
+                if (credentials.name == "user" && credentials.password == "password") {
+                     UserIdPrincipal(credentials.name)
+                } else {
+                     null
+                }
+              }
+         }
 
-        digest("myDigestAuth") {
-            digestProvider { userName, realm ->
-                usersInMyRealmToHA1[userName]
-            }
-        }
-    }
-    routing {
-        authenticate("myDigestAuth") {
-            get("/protected/route/digest") {
-                val principal = call.principal<UserIdPrincipal>()!!
-                call.respondText("Hello ${principal.name}")
-            }
-        }
-    }
+   }
 }
