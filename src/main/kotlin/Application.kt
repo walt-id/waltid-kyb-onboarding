@@ -1,27 +1,29 @@
 package id.walt
 
-import id.walt.commons.config.ConfigManager
-import id.walt.web.configureHTTP
-import id.walt.web.configureRouting
-import id.walt.web.configureSecurity
-import id.walt.web.configureSerialization
-import id.walt.web.configureStatusPages
+import id.walt.database.configureDatabases
+import id.walt.web.*
 import io.ktor.server.application.*
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.netty.Netty
+import io.ktor.server.cio.*
+import io.ktor.server.engine.*
 
-fun main() {
+fun main(args: Array<String>) {
+    embeddedServer(CIO, port = 8080, host = "0.0.0.0", module = Application::module)
+        .start(wait = true)
+}
 
-    embeddedServer(Netty, port = 8080, host = "0.0.0.0", module = Application::module).start(wait = true)
-
+@Suppress("unused") // application.conf references the main function.
+fun Application.module() {
+    configuration()
 
 }
 
-fun Application.module() {
+fun Application.configuration() {
+    configureRouting()
     configureSecurity()
     configureHTTP()
+   // configureOpenApi()
     configureSerialization()
     configureDatabases()
     configureStatusPages()
-    configureRouting()
+
 }

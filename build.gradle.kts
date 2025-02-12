@@ -8,7 +8,10 @@ plugins {
     kotlin("jvm") version "2.1.10"
     id("io.ktor.plugin") version "3.0.3"
     id("org.jetbrains.kotlin.plugin.serialization") version "2.1.10"
+    application
 }
+
+
 object Versions {
 
     const val WALTID_VERSION = "0.11.0"
@@ -19,10 +22,7 @@ group = "id.walt"
 version = "0.0.1"
 
 application {
-    mainClass.set("io.ktor.server.netty.EngineMain")
-
-    val isDevelopment: Boolean = project.ext.has("development")
-    applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
+    mainClass.set("id.walt.ApplicationKt")
 }
 
 repositories {
@@ -43,30 +43,51 @@ repositories {
 }
 
 dependencies {
-    implementation("io.ktor:ktor-server-core")
-    implementation("io.ktor:ktor-server-auth")
-    implementation("io.ktor:ktor-server-host-common")
-    implementation("io.ktor:ktor-server-status-pages")
-    implementation("io.ktor:ktor-server-cors")
-    implementation("io.ktor:ktor-server-default-headers")
-    implementation("io.ktor:ktor-server-openapi")
-    implementation("io.ktor:ktor-server-swagger")
-    implementation("io.ktor:ktor-server-content-negotiation")
-    implementation("io.ktor:ktor-serialization-kotlinx-json")
-    implementation("io.ktor:ktor-serialization-gson")
+
     implementation("org.litote.kmongo:kmongo-coroutine:${Versions.kmongoVersion}")
     implementation("org.mongodb:mongodb-driver-reactivestreams:${Versions.mongoDriverVersion}")
     implementation("org.mongodb:bson:${Versions.mongoDriverVersion}")
     implementation("org.mongodb:mongodb-driver-core:${Versions.mongoDriverVersion}")
 
-    implementation("io.ktor:ktor-server-netty")
-    implementation("ch.qos.logback:logback-classic:$logback_version")
-    implementation("io.ktor:ktor-server-config-yaml")
-    testImplementation("io.ktor:ktor-server-test-host")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
+
+    implementation("io.ktor:ktor-server-core-jvm:2.3.6")
+    implementation("io.ktor:ktor-server-sessions-jvm:2.3.6")
+    implementation("io.ktor:ktor-server-content-negotiation-jvm:2.3.6")
+    implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:2.3.6")
+    implementation("io.ktor:ktor-server-call-logging-jvm:2.3.6")
+    implementation("io.ktor:ktor-server-call-id-jvm:2.3.6")
+    implementation("io.ktor:ktor-server-cors-jvm:2.3.6")
+    implementation("io.ktor:ktor-server-double-receive-jvm:2.3.6")
+    implementation("io.ktor:ktor-server-cio-jvm:2.3.6")
+    implementation("io.ktor:ktor-server-auto-head-response:2.3.6")
+    implementation("io.ktor:ktor-server-sessions-jvm:2.3.6")
+    implementation("io.ktor:ktor-server-auth-jwt-jvm:2.3.6")
+    implementation("io.ktor:ktor-server-status-pages-jvm:2.3.6")
+    // Ktor client
+    implementation("io.ktor:ktor-client-core-jvm:2.3.6")
+    implementation("io.ktor:ktor-client-serialization-jvm:2.3.6")
+    implementation("io.ktor:ktor-client-content-negotiation:2.3.6")
+    implementation("io.ktor:ktor-client-json-jvm:2.3.6")
+    implementation("io.ktor:ktor-client-cio-jvm:2.3.6")
+    implementation("io.ktor:ktor-client-logging-jvm:2.3.6")
+    implementation("io.ktor:ktor-client-cio-jvm:2.3.6")
+    implementation("io.ktor:ktor-server-openapi:2.3.6")
+    implementation("io.ktor:ktor-server-swagger:2.3.6")
+    // Ktor external
+    implementation("io.github.smiley4:ktor-swagger-ui:2.3.1")
+
+    // Date/time
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
 
 
-    implementation("id.walt:waltid-service-commons:${Versions.WALTID_VERSION}")
+    // Logging
+    implementation("io.github.oshai:kotlin-logging:5.1.0")
+    implementation("org.slf4j:slf4j-simple:2.0.7")
+    implementation("org.slf4j:jul-to-slf4j:2.0.7")
+
+    // Testing
+    testImplementation(kotlin("test"))
+
 
 }
 fun MavenArtifactRepository.configureCredentials() {

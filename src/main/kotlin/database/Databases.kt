@@ -1,7 +1,7 @@
-package id.walt
+package id.walt.database
 
-import id.walt.data.models.user.MongoUserDataSoure
-import id.walt.data.models.user.User
+import id.walt.models.user.User
+import id.walt.services.UserService
 import io.ktor.server.application.*
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -16,7 +16,7 @@ fun Application.configureDatabases() {
         val client = KMongo.createClient("mongodb://root:password@localhost:27017/waltid-kyb?authSource=admin&authMechanism=SCRAM-SHA-256").coroutine
 
         val database = client.getDatabase("waltid-kyb")
-        val userDataSource = MongoUserDataSoure(database)
+        val userDataSource = UserService(database)
 
 
         GlobalScope.launch {

@@ -1,9 +1,11 @@
-package id.walt.data.models.user
+package id.walt.services
 
+import id.walt.models.user.User
+import id.walt.models.user.UserDataSource
 import org.litote.kmongo.coroutine.CoroutineDatabase
 import org.litote.kmongo.eq
 
-class MongoUserDataSoure(
+class UserService(
     db : CoroutineDatabase
 ) : UserDataSource {
 
