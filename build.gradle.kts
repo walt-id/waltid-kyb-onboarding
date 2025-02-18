@@ -6,9 +6,12 @@ val mongo_version: String by project
 
 plugins {
     kotlin("jvm") version "2.1.10"
-    id("io.ktor.plugin") version "3.0.3"
+    id("io.ktor.plugin") version "2.3.13"
     id("org.jetbrains.kotlin.plugin.serialization") version "2.1.10"
+    application
 }
+
+
 object Versions {
 
     const val WALTID_VERSION = "0.11.0"
@@ -19,17 +22,13 @@ group = "id.walt"
 version = "0.0.1"
 
 application {
-    mainClass.set("io.ktor.server.netty.EngineMain")
-
+    mainClass.set("id.walt.ApplicationKt")
     val isDevelopment: Boolean = project.ext.has("development")
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
 }
 
 repositories {
     mavenCentral()
-    //maven("https://maven.pkg.jetbrains.space/public/p/ktor/eap")
-    //maven("https://raw.githubusercontent.com/glureau/json-schema-serialization/mvn-repo")
-    //maven("https://jitpack.io")
     maven("https://maven.waltid.dev/releases")
     maven("https://maven.waltid.dev/snapshots")
     maven {
@@ -43,32 +42,69 @@ repositories {
 }
 
 dependencies {
-    implementation("io.ktor:ktor-server-core")
-    implementation("io.ktor:ktor-server-auth")
-    implementation("io.ktor:ktor-server-host-common")
-    implementation("io.ktor:ktor-server-status-pages")
-    implementation("io.ktor:ktor-server-cors")
-    implementation("io.ktor:ktor-server-default-headers")
-    implementation("io.ktor:ktor-server-openapi")
-    implementation("io.ktor:ktor-server-swagger")
-    implementation("io.ktor:ktor-server-content-negotiation")
-    implementation("io.ktor:ktor-serialization-kotlinx-json")
-    implementation("io.ktor:ktor-serialization-gson")
-    implementation("org.litote.kmongo:kmongo-coroutine:${Versions.kmongoVersion}")
-    implementation("org.mongodb:mongodb-driver-reactivestreams:${Versions.mongoDriverVersion}")
-    implementation("org.mongodb:bson:${Versions.mongoDriverVersion}")
-    implementation("org.mongodb:mongodb-driver-core:${Versions.mongoDriverVersion}")
 
-    implementation("io.ktor:ktor-server-netty")
-    implementation("ch.qos.logback:logback-classic:$logback_version")
-    implementation("io.ktor:ktor-server-config-yaml")
-    testImplementation("io.ktor:ktor-server-test-host")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
+    // DB
+    //MongoDB
+    implementation("org.mongodb:mongodb-driver-kotlin-coroutine:5.2.0")
+    implementation("org.mongodb:bson-kotlinx:5.2.0")
+
+    // Ktor Server
+    implementation("io.ktor:ktor-server-core-jvm:2.3.6")
+    implementation("io.ktor:ktor-server-auth-jvm:2.3.6")
+    implementation("io.ktor:ktor-server-host-common-jvm:2.3.6")
+    implementation("io.ktor:ktor-server-status-pages-jvm:2.3.6")
+    implementation("io.ktor:ktor-server-cors-jvm:2.3.6")
+    implementation("io.ktor:ktor-server-default-headers-jvm:2.3.6")
+    implementation("io.ktor:ktor-server-openapi:2.3.6")
+    implementation("io.ktor:ktor-server-swagger:2.3.6")
+    implementation("io.ktor:ktor-server-content-negotiation-jvm:2.3.6")
+    implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:2.3.6")
+    implementation("io.ktor:ktor-serialization-gson-jvm:2.3.6")
+    implementation("io.ktor:ktor-server-call-logging-jvm:2.3.6")
+    implementation("io.ktor:ktor-server-call-id-jvm:2.3.6")
+    implementation("io.ktor:ktor-server-double-receive-jvm:2.3.6")
+    implementation("io.ktor:ktor-server-cio-jvm:2.3.6")
+    implementation("io.ktor:ktor-server-auto-head-response-jvm:2.3.6")
+    implementation("io.ktor:ktor-server-auth-jwt-jvm:2.3.6")
+    implementation("io.ktor:ktor-server-sessions-jvm:2.3.6")
+
+    // Ktor Client
+    implementation("io.ktor:ktor-client-core-jvm:2.3.6")
+    implementation("io.ktor:ktor-client-content-negotiation:2.3.6")
+    implementation("io.ktor:ktor-client-serialization-jvm:2.3.6")
+    implementation("io.ktor:ktor-client-json-jvm:2.3.6")
+    implementation("io.ktor:ktor-client-cio-jvm:2.3.6")
+    implementation("io.ktor:ktor-client-logging-jvm:2.3.6")
+
+    // Ktor Swagger
+    implementation("io.github.smiley4:ktor-swagger-ui:2.3.1")
+
+    // Date/Time & Cryptography
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
+    implementation(platform("org.kotlincrypto.hash:bom:0.6.1"))
+    implementation("org.kotlincrypto.hash:sha2")
+
+    // Logging
+    implementation("io.github.oshai:kotlin-logging:5.1.0")
 
 
+    // WaltID dependencies
+    implementation("id.walt.crypto:waltid-crypto:${Versions.WALTID_VERSION}")
+    implementation("id.walt.credentials:waltid-verifiable-credentials:${Versions.WALTID_VERSION}")
+    implementation("id.walt.did:waltid-did:${Versions.WALTID_VERSION}")
+    implementation("id.walt.sdjwt:waltid-sdjwt:${Versions.WALTID_VERSION}")
+    implementation("id.walt.openid4vc:waltid-openid4vc:${Versions.WALTID_VERSION}")
+    implementation("id.walt:waltid-ktor-authnz:${Versions.WALTID_VERSION}")
+    implementation("id.walt.permissions:waltid-permissions:${Versions.WALTID_VERSION}")
     implementation("id.walt:waltid-service-commons:${Versions.WALTID_VERSION}")
+    implementation("id.walt.dif-definitions-parser:waltid-dif-definitions-parser:${Versions.WALTID_VERSION}")
+    implementation("id.walt.wallet:waltid-core-wallet:${Versions.WALTID_VERSION}")
 
+    // Testing
+    testImplementation(kotlin("test"))
+    api("io.github.smiley4:ktor-swagger-ui:3.5.1")
 }
+
 fun MavenArtifactRepository.configureCredentials() {
     val repoName = "MAVEN"
     val (username, password) = waltidPrivateCredentials(repoName)
