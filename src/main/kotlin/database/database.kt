@@ -4,6 +4,7 @@ import com.mongodb.client.model.Indexes
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import com.mongodb.kotlin.client.coroutine.MongoCollection
 import id.walt.crypto.keys.jwk.JWKKey
+import id.walt.models.business.Business
 import id.walt.models.user.Account
 import kotlinx.serialization.Serializable
 
@@ -25,10 +26,13 @@ object Database {
     }
 
     lateinit var accounts: MongoCollection<Account>
+    lateinit var business : MongoCollection<Business>
 
-    private val collectionNames = listOf("accounts", "credentials")
+    private val collectionNames = listOf("accounts", "business")
+
     fun use() {
         accounts = database.getCollection<Account>("accounts")
+        business = database.getCollection<Business>("business")
     }
 
     private fun getCollectionReference(name: String) = database.getCollection<Unit>(name)
