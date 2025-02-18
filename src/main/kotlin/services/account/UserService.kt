@@ -5,7 +5,6 @@ import id.walt.database.Database
 import id.walt.models.user.Account
 import id.walt.models.user.UserDataSource
 import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 
 class UserService() : UserDataSource {
