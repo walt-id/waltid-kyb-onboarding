@@ -1,16 +1,19 @@
 package id.walt.services.account
 
 import id.walt.models.user.Account
+import id.walt.security.token.JwtTokenService
 import io.github.smiley4.ktorswaggerui.dsl.routing.post
 import io.github.smiley4.ktorswaggerui.dsl.routing.route
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.json.JsonObject
+import org.mindrot.jbcrypt.BCrypt
 import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 object UserController {
 
@@ -64,11 +67,10 @@ object UserController {
             }
         }) {
             val account = call.receive<JsonObject>()
-
             val user = Account(
-               // id = Uuid.random().toString(),
+                // id = Uuid.random().toString(),
                 email = account["email"].toString(),
-                password = account["password"].toString(),
+                password = BCrypt.hashpw(account["password"].toString(), BCrypt.gensalt()),
                 company = account["company"].toString(),
                 role = account["role"].toString()
             )
@@ -78,6 +80,72 @@ object UserController {
             println("user created")
             call.respond(HttpStatusCode.Created)
         }
+
+
+        post("/login", {
+            summary = "Login User"
+            description = "Login a User to the system"
+            request {
+                body<JsonObject> {
+                    description =
+                        "User to login. The user will be logged in with the provided information."
+
+                }
+            }
+            response {
+                HttpStatusCode.OK to {
+                    description = "Successful Request"
+                    body<String> {
+                        description = "the response"
+
+                    }
+                }
+                HttpStatusCode.InternalServerError to {
+                    description = "Something unexpected happened"
+                }
+            }
+        }) {
+            runCatching {
+
+                val request = call.receive<JsonObject>()
+
+                val email =
+                    request["email"] ?: return@post call.respondText(
+                        "Missing email",
+                        status = HttpStatusCode.BadRequest
+                    )
+                val password = request["password"] ?: return@post call.respondText(
+                    "Missing password",
+                    status = HttpStatusCode.BadRequest
+                )
+
+                println("email: $email")
+                println("password: $password")
+                val account = UserService().authenticate(email.toString(), password.toString())
+                if (account != null) {
+                    val token = JwtTokenService().generateToken(
+                        account
+                    )
+                    call.respond(mapOf("token" to token))
+                } else {
+                    call.respondText("Invalid credentials", status = HttpStatusCode.Unauthorized)
+                }
+                context.respond(HttpStatusCode.OK to "Successful Request ")
+            }.onFailure {
+                throw it
+            }
+        }
+
+
+        authenticate("auth-jwt") {
+            get("/admin/profile") {
+                val principal = call.principal<JWTPrincipal>()
+                val adminId = principal!!.payload.getClaim("adminId").asString()
+                call.respond(mapOf("adminId" to adminId))
+            }
+        }
+
+
 
 
     }
