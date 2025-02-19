@@ -86,8 +86,8 @@ dependencies {
 
     // Logging
     implementation("io.github.oshai:kotlin-logging:5.1.0")
-
-
+    // Security
+    implementation("org.mindrot:jbcrypt:0.4")
     // WaltID dependencies
     implementation("id.walt.crypto:waltid-crypto:${Versions.WALTID_VERSION}")
     implementation("id.walt.credentials:waltid-verifiable-credentials:${Versions.WALTID_VERSION}")
