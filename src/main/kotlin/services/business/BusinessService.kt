@@ -7,6 +7,7 @@ import id.walt.database.Database
 import id.walt.models.business.Business
 import id.walt.models.business.BusinessDataSource
 import id.walt.models.business.CompanyStatus
+import id.walt.services.credentials.IssuerVcCredentialService.issue
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.toList
 import org.bson.types.ObjectId
@@ -48,6 +49,42 @@ class BusinessService : BusinessDataSource {
         )
         return result.wasAcknowledged()
 
+    }
+
+    suspend fun approveAndIssueVC(AccountId: String, businessId: String): Boolean {
+        val obj = ObjectId(businessId)
+        val result = Database.business.updateOne(
+            Filters.and(
+                eq("_id", obj),
+                eq("adminId", AccountId)
+            ),
+            Updates.combine(
+                Updates.set("status", CompanyStatus.APPROVED),
+                Updates.set("approved", true),
+                Updates.set("approved_by", AccountId)
+            )
+        )
+
+        val business = Database.business.find(eq("_id", obj)).first()
+        val business_did = business.wallet_did
+
+        // Issue VC
+
+        val issueVC = issue(
+            legal_name = business.legal_name,
+            business_type = business.business_type,
+            registration_address = business.registration_address,
+            registration_number = business.registration_number,
+            phone_number = business.phone_number,
+            website = business.website,
+            business_did = business_did
+        )
+
+        println(
+            "VC issued: $issueVC"
+        )
+
+        return result.wasAcknowledged()
     }
 
     override suspend fun getBusinessById(id: String): Business? {
