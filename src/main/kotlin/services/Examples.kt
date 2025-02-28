@@ -16,6 +16,7 @@ object Examples {
         """
         {
             "legal_name": "Walt ID",
+            "wallet_did": "did:key:z6MkjoRhq1jSNJdLiruSXrFFxagqrztZaXHqHGUTKJbcNywp",
             "business_type": "Technology",
             "registration_address": "Walt Street 1",
             "registration_number": "1234567890",
