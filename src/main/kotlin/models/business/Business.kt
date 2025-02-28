@@ -11,6 +11,7 @@ enum class CompanyStatus {
 @Serializable
 data class Business(
     val legal_name: String,
+    val wallet_did: String,
     val business_type: String,
     val registration_address: String,
     val registration_number: String,
