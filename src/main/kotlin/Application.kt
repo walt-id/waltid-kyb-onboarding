@@ -9,17 +9,13 @@ import id.walt.commons.web.WebService
 import id.walt.database.Database
 import id.walt.database.DatabaseConfiguration
 import id.walt.did.helpers.WaltidServices
+import id.walt.web.*
 import id.walt.web.auth.authenticationPluginAmendment
-import id.walt.web.configureHTTP
-import id.walt.web.configureRouting
-import id.walt.web.configureSecurity
-import id.walt.web.kybApi
-import id.walt.web.openApiPluginAmendment
 import io.ktor.server.application.*
 
 suspend fun main(args: Array<String>) {
     ServiceMain(
-        ServiceConfiguration("Visitor Pass"),
+        ServiceConfiguration("KYB Service"),
         ServiceInitialization(
             features = listOf(FeatureCatalog),
             featureAmendments = mapOf(
