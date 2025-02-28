@@ -16,28 +16,43 @@ class BusinessService : BusinessDataSource {
         Database.business.countDocuments(eq("_id", accountId)) >= 1
 
 
-    override suspend fun createBusiness(business: Business): Business {
+    override suspend fun createBusiness(business: Business, adminId: String): Business {
         if (isBusinessExisting(business.registration_number)) {
             error("Business with ${business.registration_number} already exists")
         }
-        Database.business.insertOne(business)
+        val newBusiness = business.copy(adminId = adminId)
+        Database.business.insertOne(newBusiness)
         return business
     }
 
-    suspend fun getPendingBusiness(): List<Business> {
-      return  Database.business.find(eq("status", CompanyStatus.PENDING)).toList()
+    suspend fun getPendingBusiness(AccountId: String): List<Business> {
+        println("AccountId: $AccountId")
+        println("ObjectId(AccountId): ${ObjectId(AccountId)}")
+        return Database.business.find(
+            Filters.and(
+                eq("status", CompanyStatus.PENDING),
+                eq("adminId", AccountId)
+            )
+
+        ).toList()
     }
 
-    suspend fun updateCompanyStatus(businessId: ObjectId, newStatus: CompanyStatus): Boolean {
+    suspend fun updateCompanyStatus(AccountId: String, businessId: String, newStatus: CompanyStatus): Boolean {
+        val obj = ObjectId(businessId)
         val result = Database.business.updateOne(
-            eq("_id", businessId),
-            Updates.set("status", newStatus.name)
+            Filters.and(
+                eq("_id", obj),
+                eq("adminId", AccountId)
+            ),
+            Updates.set("status", newStatus)
         )
-        return result.modifiedCount > 0
+        return result.wasAcknowledged()
+
     }
 
     override suspend fun getBusinessById(id: String): Business? {
-        return Database.business.find(eq("_id", id)).first()
+        println("id: $id")
+        return Database.business.find(eq("_id", ObjectId(id))).first()
     }
 
     override suspend fun deleteBusinessById(id: String): Boolean {

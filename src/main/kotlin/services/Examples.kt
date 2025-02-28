@@ -21,7 +21,8 @@ object Examples {
             "registration_number": "1234567890",
             "email": "walt@id",
             "phone_number": "+1234567890",
-            "website": "https://walt.id"
+            "website": "https://walt.id",
+            "adminId": "5f7b1b3b7f7b7b7b7b7b7b7b"
             
         }
         """.trimIndent()
