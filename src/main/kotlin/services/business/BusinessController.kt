@@ -81,41 +81,48 @@ object BusinessController {
                 val accountId = call.principal<JWTPrincipal>()?.getClaim("adminId", String::class)
                     ?: return@post call.respond(HttpStatusCode.Unauthorized)
 
-                val approved = BusinessService().updateCompanyStatus(accountId, businessId, CompanyStatus.APPROVED)
+                val approved = BusinessService().approveAndIssueVC(accountId, businessId)
                 if (approved) {
-                    call.respondText("Company approved")
+                    call.respondText("Company approved and VC issued")
                 } else {
                     call.respondText("Company not found", status = HttpStatusCode.NotFound)
                 }
             }
 
-            post("/admin/companies/update-status") {
-                val request = call.receive<Map<String, String>>()
-                val companyId = request["companyId"] ?: return@post call.respondText(
-                    "Missing companyId",
-                    status = HttpStatusCode.BadRequest
-                )
-                val status = request["status"] ?: return@post call.respondText(
-                    "Missing status",
-                    status = HttpStatusCode.BadRequest
-                )
 
-                val newStatus = try {
-                    CompanyStatus.valueOf(status.uppercase())
-                } catch (e: IllegalArgumentException) {
-                    return@post call.respondText(
-                        "Invalid status. Use APPROVED or REJECTED.",
-                        status = HttpStatusCode.BadRequest
-                    )
+            post("/admin/companies/reject", {
+                request {
+                    body<JsonObject> {
+                        description =
+                            "Company to reject. The company will be rejected with the provided information."
+
+                    }
                 }
+                response {
+                    HttpStatusCode.OK to {
+                        description = "Successful Request"
+                        body<String> {
+                            description = "the response body"
 
-                val accountId = call.principal<JWTPrincipal>()?.getClaim("id", String::class)
+                        }
+                    }
+                    HttpStatusCode.InternalServerError to {
+                        description = "Something unexpected happened"
+                    }
+                }
+            }) {
+                val request = call.receive<JsonObject>()
+                val businessId = request["businessId"]?.jsonPrimitive?.content.toString()
+                val accountId = call.principal<JWTPrincipal>()?.getClaim("adminId", String::class)
                     ?: return@post call.respond(HttpStatusCode.Unauthorized)
-
                 val updated =
-                    BusinessService().updateCompanyStatus(accountId, ObjectId(companyId).toString(), newStatus)
+                    BusinessService().updateCompanyStatus(
+                        accountId,
+                        ObjectId(businessId).toString(),
+                        CompanyStatus.REJECTED
+                    )
                 if (updated) {
-                    call.respondText("Company status updated to $status")
+                    call.respondText("Company rejected")
                 } else {
                     call.respondText("Company not found", status = HttpStatusCode.NotFound)
                 }
