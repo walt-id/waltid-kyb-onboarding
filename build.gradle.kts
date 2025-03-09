@@ -29,6 +29,7 @@ application {
 
 repositories {
     mavenCentral()
+
     maven("https://maven.waltid.dev/releases")
     maven("https://maven.waltid.dev/snapshots")
     maven {
@@ -134,3 +135,29 @@ fun waltidPrivateCredentials(repoName:String): Pair<String, String> = let {
             - environment variable: ${repo.uppercase()}_${field.uppercase()}
             - or text file in the project root: secret-${repo.lowercase()}-${field.lowercase()}.txt
     """.trimIndent()
+ktor {
+    fatJar {
+        archiveFileName.set("kyb-onboarding.jar")
+    }
+
+    docker {
+        jreVersion.set(JavaVersion.VERSION_21)
+        localImageName.set("waltid/kyb-onboarding")
+        imageTag.set("1.0.0-SNAPSHOT")
+        portMappings.set(listOf(
+            io.ktor.plugin.features.DockerPortMapping(
+                3000,
+                3000,
+                io.ktor.plugin.features.DockerPortMappingProtocol.TCP
+            )
+        ))
+
+        externalRegistry.set(
+            io.ktor.plugin.features.DockerImageRegistry.dockerHub(
+                appName = provider { "kyb-onboarding" },
+                username = provider { "waltid" },
+                password = provider { "If87v%u%cVBB" }
+            )
+        )
+    }
+}
