@@ -13,8 +13,8 @@ import kotlinx.coroutines.flow.toList
 import org.bson.types.ObjectId
 
 class BusinessService : BusinessDataSource {
-    suspend fun isBusinessExisting(accountId: String): Boolean =
-        Database.business.countDocuments(eq("_id", accountId)) >= 1
+    suspend fun isBusinessExisting(registration_number: String): Boolean =
+        Database.business.countDocuments(eq("registration_number", registration_number)) >= 1
 
 
     override suspend fun createBusiness(business: Business, adminId: String): Business {
@@ -27,8 +27,6 @@ class BusinessService : BusinessDataSource {
     }
 
     suspend fun getPendingBusiness(AccountId: String): List<Business> {
-        println("AccountId: $AccountId")
-        println("ObjectId(AccountId): ${ObjectId(AccountId)}")
         return Database.business.find(
             Filters.and(
                 eq("status", CompanyStatus.PENDING),
@@ -38,11 +36,10 @@ class BusinessService : BusinessDataSource {
         ).toList()
     }
 
-    suspend fun updateCompanyStatus(AccountId: String, businessId: String, newStatus: CompanyStatus): Boolean {
-        val obj = ObjectId(businessId)
+    suspend fun updateCompanyStatus(AccountId: String, registration_number: String, newStatus: CompanyStatus): Boolean {
         val result = Database.business.updateOne(
             Filters.and(
-                eq("_id", obj),
+                eq("registration_number", registration_number),
                 eq("adminId", AccountId)
             ),
             Updates.set("status", newStatus)
@@ -51,11 +48,11 @@ class BusinessService : BusinessDataSource {
 
     }
 
-    suspend fun approveAndIssueVC(AccountId: String, businessId: String): Boolean {
-        val obj = ObjectId(businessId)
+    suspend fun approveAndIssueVC(AccountId: String, registration_number: String): Boolean {
+        //  val obj = ObjectId(businessId)
         val result = Database.business.updateOne(
             Filters.and(
-                eq("_id", obj),
+                eq("registration_number", registration_number),
                 eq("adminId", AccountId)
             ),
             Updates.combine(
@@ -65,7 +62,7 @@ class BusinessService : BusinessDataSource {
             )
         )
 
-        val business = Database.business.find(eq("_id", obj)).first()
+        val business = Database.business.find(eq("registration_number", registration_number)).first()
         val business_did = business.wallet_did
 
         // Issue VC
