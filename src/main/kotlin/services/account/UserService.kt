@@ -1,11 +1,12 @@
 package id.walt.services.account
 
-import com.mongodb.client.model.Filters
 import com.mongodb.client.model.Filters.eq
 import id.walt.database.Database
+import id.walt.models.account.AccountDTO
 import id.walt.models.user.Account
 import id.walt.models.user.UserDataSource
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.toList
 import org.mindrot.jbcrypt.BCrypt
 import kotlin.uuid.ExperimentalUuidApi
 
@@ -17,7 +18,7 @@ class UserService() : UserDataSource {
 
 
     suspend fun authenticate(email: String, password: String): Account? {
-        val admin = Database.accounts.find(Filters.eq("email", email)).firstOrNull() ?: return null
+        val admin = Database.accounts.find(eq("email", email)).firstOrNull() ?: return null
         return if (BCrypt.checkpw(password, admin.password)) admin else null
     }
 
@@ -30,6 +31,20 @@ class UserService() : UserDataSource {
 
         Database.accounts.insertOne(user)
         return user
+    }
+
+    override suspend fun getAllUsers(): List<AccountDTO> {
+        return Database.accounts.find()
+            .toList()
+            .map { account ->
+                AccountDTO(
+                    id = account.id, // Convert ObjectId to String
+                    email = account.email,
+                    company = account.company,
+                    role = account.role,
+                    dataSpace = account.dataSpace // Ensure this field exists in Account
+                )
+            }
     }
 
     override suspend fun getUserByEmail(email: String): Account? {
