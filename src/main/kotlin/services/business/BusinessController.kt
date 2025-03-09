@@ -50,7 +50,7 @@ object BusinessController {
                 val adminId =
                     principal.getClaim("adminId", String::class) ?: return@get call.respond(HttpStatusCode.Unauthorized)
 
-                println("adminId: $adminId")
+
                 val pendingCompanies = BusinessService().getPendingBusiness(adminId)
                 call.respond(pendingCompanies)
             }
@@ -60,7 +60,7 @@ object BusinessController {
                     body<JsonObject> {
                         description =
                             "Company to approve. The company will be approved with the provided information."
-
+                        example("Minimal example", Examples.businessUpdateRequestBodyExample)
                     }
                 }
                 response {
@@ -77,7 +77,7 @@ object BusinessController {
                 }
             }) {
                 val request = call.receive<JsonObject>()
-                val businessId = request["businessId"]?.jsonPrimitive?.content.toString()
+                val businessId = request["registration_number"]?.jsonPrimitive?.content.toString()
                 val accountId = call.principal<JWTPrincipal>()?.getClaim("adminId", String::class)
                     ?: return@post call.respond(HttpStatusCode.Unauthorized)
 
@@ -95,7 +95,7 @@ object BusinessController {
                     body<JsonObject> {
                         description =
                             "Company to reject. The company will be rejected with the provided information."
-
+                        example("Minimal example", Examples.businessUpdateRequestBodyExample)
                     }
                 }
                 response {
@@ -112,7 +112,7 @@ object BusinessController {
                 }
             }) {
                 val request = call.receive<JsonObject>()
-                val businessId = request["businessId"]?.jsonPrimitive?.content.toString()
+                val businessId = request["registration_number"]?.jsonPrimitive?.content.toString()
                 val accountId = call.principal<JWTPrincipal>()?.getClaim("adminId", String::class)
                     ?: return@post call.respond(HttpStatusCode.Unauthorized)
                 val updated =
