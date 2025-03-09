@@ -49,15 +49,3 @@ class SHA256HashingService : HashingService {
 
 }
 
-fun main() {
-    val value = "mySecretPassword"
-    val saltLength = 16 // 16 bytes long salt
-    val saltedHash = SHA256HashingService().generateSaltedHash(value, saltLength)
-
-    println("Salt: ${saltedHash.salt}")
-    println("Hash: ${saltedHash.hash}")
-
-    // Verify the hash
-    val isVerified = SHA256HashingService().verifySaltedHash(value, saltedHash)
-    println("Hash Verified: $isVerified")
-}
