@@ -59,7 +59,7 @@ services:
 
 
   waltid-kyb-onboarding:
-    image: waltid/waltid-kyb-onboarding
+    image: waltid/kyb-onboarding
     ports:
       - "7004:7004"
     volumes:
