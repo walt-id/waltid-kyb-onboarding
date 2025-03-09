@@ -12,6 +12,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.mindrot.jbcrypt.BCrypt
 import kotlin.uuid.ExperimentalUuidApi
 
@@ -68,11 +69,11 @@ object UserController {
         }) {
             val account = call.receive<JsonObject>()
             val user = Account(
-                // id = Uuid.random().toString(),
-                email = account["email"].toString(),
-                password = BCrypt.hashpw(account["password"].toString(), BCrypt.gensalt()),
-                company = account["company"].toString(),
-                role = account["role"].toString()
+                email = account["email"]?.jsonPrimitive?.content ?: "",
+                password = BCrypt.hashpw(account["password"]?.jsonPrimitive?.content ?: "", BCrypt.gensalt()),
+                company = account["company"]?.jsonPrimitive?.content ?: "",
+                role = account["role"]?.jsonPrimitive?.content ?: "",
+                dataSpace = account["dataSpace"]?.jsonPrimitive?.content ?: ""
             )
 
 
@@ -89,7 +90,7 @@ object UserController {
                 body<JsonObject> {
                     description =
                         "User to login. The user will be logged in with the provided information."
-
+                    example("Minimal example", ExampleUser.loginUserRequestBodyExample)
                 }
             }
             response {
@@ -119,8 +120,6 @@ object UserController {
                     status = HttpStatusCode.BadRequest
                 )
 
-                println("email: $email")
-                println("password: $password")
                 val account = UserService().authenticate(email.toString(), password.toString())
                 if (account != null) {
                     val token = JwtTokenService().generateToken(
@@ -134,6 +133,10 @@ object UserController {
             }.onFailure {
                 throw it
             }
+        }
+
+        get("/admins") {
+            call.respond(UserService().getAllUsers())
         }
 
 

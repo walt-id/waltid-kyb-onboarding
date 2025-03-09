@@ -1,6 +1,5 @@
 package id.walt.services.account
 
-import io.github.smiley4.ktorswaggerui.data.ExampleDescriptor
 import io.github.smiley4.ktorswaggerui.dsl.routes.ValueExampleDescriptorDsl
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -17,7 +16,19 @@ object ExampleUser {
             "email": "user@example.com",
             "password": "securepassword123",
             "company": "Walt ID",
-            "role": "admin"
+            "role": "admin",
+            "dataSpace" :"walt"
+        }
+        """.trimIndent()
+
+    )
+
+    // language=json
+    val loginUserRequestBodyExample = jsonObjectValueExampleDescriptorDsl(
+        """
+        {
+            "email": "user@example.com",
+            "password": "securepassword123"
         }
         """.trimIndent()
 

@@ -30,4 +30,13 @@ object Examples {
 
     )
 
+    // language=json
+    val businessUpdateRequestBodyExample = jsonObjectValueExampleDescriptorDsl(
+        """
+        {
+           "registration_number" : "1234567890"
+        }
+        """.trimIndent()
+    )
+
 }
