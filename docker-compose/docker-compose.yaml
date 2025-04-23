@@ -59,7 +59,8 @@ services:
 
 
   waltid-kyb-onboarding:
-    image: waltid/kyb-onboarding
+    image: waltid/kyb-onboarding:latest
+    container_name: waltid-kyb-onboarding
     ports:
       - "7004:7004"
     volumes:
