@@ -12,7 +12,9 @@ import id.walt.did.helpers.WaltidServices
 import id.walt.web.*
 import id.walt.web.auth.authenticationPluginAmendment
 import io.ktor.server.application.*
+import love.forte.plugin.suspendtrans.annotation.Api4J
 
+@OptIn(Api4J::class)
 suspend fun main(args: Array<String>) {
     ServiceMain(
         ServiceConfiguration("KYB Service"),
@@ -24,11 +26,8 @@ suspend fun main(args: Array<String>) {
             ), init = {
                 val dbConfig = ConfigManager.getConfig<DatabaseConfiguration>()
                 Database.connect(dbConfig).use()
-
-                /*DB.drop()
-                  DB.create()
-                 DbInitService.ingestDefaultData()*/
                 WaltidServices.minimalInit()
+
             }, run = WebService(Application::module).run()
         )
     ).main(args)
@@ -39,13 +38,9 @@ fun Application.module() {
 
 
 fun Application.configuration() {
+    configureHTTP()
     configureRouting()
     configureSecurity()
-    configureHTTP()
-    // configureOpenApi()
-    //configureSerialization()
-    //  configureDatabases()
-    // configureStatusPages()
     kybApi()
 
 }
