@@ -5,7 +5,6 @@ import id.walt.security.token.JwtTokenService
 import io.github.smiley4.ktorswaggerui.dsl.routing.post
 import io.github.smiley4.ktorswaggerui.dsl.routing.route
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
@@ -129,7 +128,7 @@ object UserController {
                 } else {
                     call.respondText("Invalid credentials", status = HttpStatusCode.Unauthorized)
                 }
-                context.respond(HttpStatusCode.OK to "Successful Request ")
+                //   context.respond(HttpStatusCode.OK to "Successful Request ")
             }.onFailure {
                 throw it
             }
