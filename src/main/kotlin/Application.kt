@@ -26,6 +26,7 @@ suspend fun main(args: Array<String>) {
             ), init = {
                 val dbConfig = ConfigManager.getConfig<DatabaseConfiguration>()
                 Database.connect(dbConfig).use()
+                Database.connect(dbConfig).setup()
                 WaltidServices.minimalInit()
 
             }, run = WebService(Application::module).run()
