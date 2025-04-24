@@ -1,17 +1,19 @@
 FROM docker.io/gradle:jdk17 as buildstage
 
-COPY src/ /work/src
-COPY gradle/ /work/gradle
-COPY build.gradle.kts settings.gradle.kts gradle.properties gradlew /work/
-
 WORKDIR /work
+
+COPY src/ /src
+COPY gradle/ /gradle
+COPY build.gradle.kts settings.gradle.kts gradle.properties gradlew /
+
+
 RUN gradle clean installDist
 
 FROM docker.io/eclipse-temurin:21
 
 COPY --from=buildstage /work/build/install/ /
 
-COPY config /waltid-kyb-onboarding/config
+#COPY config /waltid-kyb-onboarding/config
 WORKDIR /waltid-kyb-onboarding
 
 
