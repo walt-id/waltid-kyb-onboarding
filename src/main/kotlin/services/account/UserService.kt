@@ -17,9 +17,15 @@ class UserService() : UserDataSource {
         Database.accounts.countDocuments(eq("email", email)) >= 1
 
 
-    suspend fun authenticate(email: String, password: String): Account? {
-        val admin = Database.accounts.find(eq("email", email)).firstOrNull() ?: return null
-        return if (BCrypt.checkpw(password, admin.password)) admin else null
+    suspend fun authenticate(email: String, password: String): Account {
+        val account = Database.accounts.find(eq("email", email)).firstOrNull()
+            ?: throw IllegalArgumentException("Invalid credentials")
+
+        if (!BCrypt.checkpw(password, account.password)) {
+            throw IllegalArgumentException("Invalid credentials")
+        }
+
+        return account
     }
 
     @OptIn(ExperimentalUuidApi::class)
@@ -27,8 +33,6 @@ class UserService() : UserDataSource {
         if (isAccountExisting(user.email)) {
             error("Account with  ${user.email} already exists")
         }
-
-
         Database.accounts.insertOne(user)
         return user
     }

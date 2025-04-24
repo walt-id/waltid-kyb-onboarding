@@ -68,7 +68,7 @@ object UserController {
         }) {
             val account = call.receive<JsonObject>()
             val user = Account(
-                email = account["email"]?.jsonPrimitive?.content ?: "",
+                email = account["email"]?.jsonPrimitive?.content?.trim()?.lowercase() ?: "",
                 password = BCrypt.hashpw(account["password"]?.jsonPrimitive?.content ?: "", BCrypt.gensalt()),
                 company = account["company"]?.jsonPrimitive?.content ?: "",
                 role = account["role"]?.jsonPrimitive?.content ?: "",
@@ -118,8 +118,9 @@ object UserController {
                     "Missing password",
                     status = HttpStatusCode.BadRequest
                 )
-
-                val account = UserService().authenticate(email.toString(), password.toString())
+                println("email: $email , password : $password")
+                val account = UserService().authenticate(email.jsonPrimitive.content, password.jsonPrimitive.content)
+                println("account: $account")
                 if (account != null) {
                     val token = JwtTokenService().generateToken(
                         account
@@ -128,7 +129,7 @@ object UserController {
                 } else {
                     call.respondText("Invalid credentials", status = HttpStatusCode.Unauthorized)
                 }
-                //   context.respond(HttpStatusCode.OK to "Successful Request ")
+                call.respond(HttpStatusCode.OK)
             }.onFailure {
                 throw it
             }
