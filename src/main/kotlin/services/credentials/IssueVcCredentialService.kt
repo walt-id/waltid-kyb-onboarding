@@ -1,5 +1,6 @@
 package id.walt.services.credentials
 
+import id.walt.commons.config.ConfigManager
 import id.walt.crypto.utils.JsonUtils.toJsonElement
 import io.ktor.client.*
 import io.ktor.client.plugins.*
@@ -14,22 +15,10 @@ import kotlinx.serialization.json.jsonObject
 
 
 object IssuerVcCredentialService {
-
-    private const val BASE_URL = "http://127.0.0.1:7002/"
-    private val ISSUER_KEY = mapOf(
-        "type" to "jwk",
-        "jwk" to mapOf(
-            "kty" to "OKP",
-            "d" to "Poslg5iBF-qc53zgsLdxpqdRaO0Z14mt09a5ZA2NIgg",
-            "crv" to "Ed25519",
-            "kid" to "jVVEQr1EjUAFvHQCHumyoZ8WN4Myfz2elqGrSxhlUI4",
-            "x" to "w4qaseqowtM19-5Z7bpyic8K5dQnrXi0izigqOCLGmc"
-        )
-    )
-
-    private const val ISSUER_DID =
-        "did:jwk:eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5Iiwia2lkIjoiQWhSSG5DSnhsc0hMdUZQM3JWTTE2YWNJeXZvUFpkN3p1SGhLUkUtenBrayIsIngiOiJqQTZkZklSRzFodzdzQ2I4bUhyUWhadVB2RWlzZkhwLTBNSFpDUXZtRHhBIn0"
-
+    private val ISSUER_KEY = ConfigManager.getConfig<IssuerConfiguration>().issuerKey
+    private val BASE_URL = ConfigManager.getConfig<IssuerConfiguration>().issuerUrl
+    private val ISSUER_DID = ConfigManager.getConfig<IssuerConfiguration>().issuerDid
+    private val WALLET_URL = ConfigManager.getConfig<WalletConfiguration>().walletUrl
 
     private val http = HttpClient {
         install(ContentNegotiation) {
@@ -46,7 +35,7 @@ object IssuerVcCredentialService {
     }
 
     private suspend fun requestIssuance(requestBody: JsonObject) =
-        http.post("${BASE_URL}openid4vc/jwt/issue") {
+        http.post("${BASE_URL}/openid4vc/jwt/issue") {
             setBody(requestBody)
         }.bodyAsText()
 
@@ -57,9 +46,9 @@ object IssuerVcCredentialService {
         registration_number: String,
         phone_number: String,
         website: String,
-        business_did: String
+        business_did: String,
 
-    ): Boolean {
+        ): Boolean {
         val requestBody = mapOf(
             "issuerKey" to ISSUER_KEY,
             "issuerDid" to ISSUER_DID,
@@ -101,7 +90,7 @@ object IssuerVcCredentialService {
 
         println("request: $request")
 
-        val silentExchange = http.post("http://127.0.0.1:7001/wallet-api/api/useOfferRequest/$business_did") {
+        val silentExchange = http.post("${WALLET_URL}/wallet-api/api/useOfferRequest/$business_did") {
             setBody(request)
         }.bodyAsText()
 
