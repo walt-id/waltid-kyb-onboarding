@@ -1,18 +1,22 @@
 package id.walt.services.business
 
+import id.walt.commons.config.ConfigManager
 import id.walt.models.business.Business
 import id.walt.models.business.CompanyStatus
 import id.walt.services.Examples
+import id.walt.services.credentials.IssuerConfiguration
+import id.walt.services.credentials.WalletConfiguration
 import io.github.smiley4.ktorswaggerui.dsl.routing.post
 import io.github.smiley4.ktorswaggerui.dsl.routing.route
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.bson.types.ObjectId
 
@@ -76,12 +80,25 @@ object BusinessController {
                     }
                 }
             }) {
+                val ISSUER_KEY = ConfigManager.getConfig<IssuerConfiguration>().issuerKey
+                println("ISSUER_KEY: $ISSUER_KEY")
+
+                val WALLET_URL = ConfigManager.getConfig<WalletConfiguration>().walletUrl
+                println("WALLET_URL: $WALLET_URL")
+
                 val request = call.receive<JsonObject>()
                 val businessId = request["registration_number"]?.jsonPrimitive?.content.toString()
+
                 val accountId = call.principal<JWTPrincipal>()?.getClaim("adminId", String::class)
                     ?: return@post call.respond(HttpStatusCode.Unauthorized)
-
-                val approved = BusinessService().approveAndIssueVC(accountId, businessId)
+                val credentialTypes =
+                    request["credentialTypes"]?.jsonArray?.map { it.jsonPrimitive.content } ?: listOf("DefaultVC")
+                val customCredential = request["customCredential"]?.jsonObject
+                val approved = BusinessService().approveAndIssueVC(
+                    accountId, businessId,
+                    credentialTypes = credentialTypes,
+                    customCredential = customCredential
+                )
                 if (approved) {
                     call.respondText("Company approved and VC issued")
                 } else {

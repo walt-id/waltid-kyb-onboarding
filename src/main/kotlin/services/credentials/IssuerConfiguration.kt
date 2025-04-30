@@ -10,7 +10,3 @@ data class IssuerConfiguration(
     val issuerDid: String,
 )
 
-@Serializable
-data class WalletConfiguration(
-    val walletUrl: String,
-)
