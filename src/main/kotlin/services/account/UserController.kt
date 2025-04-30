@@ -121,14 +121,10 @@ object UserController {
                 println("email: $email , password : $password")
                 val account = UserService().authenticate(email.jsonPrimitive.content, password.jsonPrimitive.content)
                 println("account: $account")
-                if (account != null) {
-                    val token = JwtTokenService().generateToken(
-                        account
-                    )
-                    call.respond(mapOf("token" to token))
-                } else {
-                    call.respondText("Invalid credentials", status = HttpStatusCode.Unauthorized)
-                }
+                val token = JwtTokenService().generateToken(
+                    account
+                )
+                call.respond(mapOf("token" to token))
                 call.respond(HttpStatusCode.OK)
             }.onFailure {
                 throw it
