@@ -12,9 +12,7 @@ import id.walt.did.helpers.WaltidServices
 import id.walt.web.*
 import id.walt.web.auth.authenticationPluginAmendment
 import io.ktor.server.application.*
-import love.forte.plugin.suspendtrans.annotation.Api4J
 
-@OptIn(Api4J::class)
 suspend fun main(args: Array<String>) {
     ServiceMain(
         ServiceConfiguration("KYB Service"),
