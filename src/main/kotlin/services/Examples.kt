@@ -21,6 +21,8 @@ object Examples {
             "registration_address": "Walt Street 1",
             "registration_number": "1234567890",
             "email": "walt@id",
+            "country_code": "US",
+            "lei_code": "1234567890",
             "phone_number": "+1234567890",
             "website": "https://walt.id",
             "adminId": "5f7b1b3b7f7b7b7b7b7b7b7b"
@@ -33,8 +35,20 @@ object Examples {
     // language=json
     val businessUpdateRequestBodyExample = jsonObjectValueExampleDescriptorDsl(
         """
-        {
-           "registration_number" : "1234567890"
+          {
+          "registration_number": "ABC123",
+          "credentialTypes": ["GaiaXTermsAndConditions", "LegalPerson", "custom"],
+          "customCredential": {
+            "@context": [
+              "https://www.w3.org/2018/credentials/v1",
+              "https://example.org/custom-context"
+            ],
+            "type": ["VerifiableCredential", "CustomType"],
+            "credentialSubject": {
+              "id": "did:web:example.org",
+              "customAttribute": "customValue"
+            }
+          }
         }
         """.trimIndent()
     )
