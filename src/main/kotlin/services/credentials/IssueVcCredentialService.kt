@@ -40,52 +40,57 @@ object IssuerVcCredentialService {
     }
 
     private suspend fun requestIssuance(requestBody: JsonObject) =
-        http.post("${ISSUER_URL}/openid4vc/jwt/issue") {
+        http.post("${ISSUER_URL}/openid4vc/jwt/issueBatch") {
             setBody(requestBody)
         }.bodyAsText()
 
     suspend fun issue(
         business: Business,
         businessDid: String,
-        credentialType: String,
+        credentialTypes: List<String>,
         customCredential: JsonObject? = null,
     ): Boolean {
-        val requestBody = when {
-            credentialType == "custom" && customCredential != null -> {
-                customCredential
-            }
+        val credentialRequests = credentialTypes.mapNotNull { credentialType ->
+            when {
+                credentialType == "custom" && customCredential != null -> {
+                    customCredential
+                }
 
-            credentialType == "GaiaXTermsAndConditions" -> {
-                buildGaiaXTermsAndConditionsCredential(businessDid)
-            }
+                credentialType == "GaiaXTermsAndConditions" -> {
+                    buildGaiaXTermsAndConditionsCredential(businessDid)
+                }
 
-            credentialType == "LegalPerson" -> {
-                buildLegalPersonCredential(business, businessDid)
-            }
+                credentialType == "LegalPerson" -> {
+                    buildLegalPersonCredential(business, businessDid)
+                }
 
-            credentialType == "LegalRegistrationNumber" -> {
-                buildLegalRegistrationNumberCredential(business, businessDid)
-            }
+                credentialType == "LegalRegistrationNumber" -> {
+                    buildLegalRegistrationNumberCredential(business, businessDid)
+                }
 
-            else -> {
-                println("Unknown credential type: $credentialType")
+                else -> {
+                    throw Exception("Unsupported credential type: $credentialType")
+                }
             }
-        }.toJsonElement().jsonObject
+        }
 
-        println("requestBody: $requestBody")
-        // val offerRequest = requestIssuance(requestBody)
-        // println("offerRequest: $offerRequest")
-        println(WALLET_URL)
-        val offerRequest = http.post("${ISSUER_URL}/openid4vc/jwt/issue") {
+        if (credentialRequests.isEmpty()) {
+            throw Exception("No valid credential requests found for types: $credentialTypes")
+        }
+
+        val requestBody = credentialRequests.map { it.toJsonElement().jsonObject }
+
+
+        val offerRequest = http.post("${ISSUER_URL}/openid4vc/jwt/issueBatch") {
             setBody(requestBody)
         }
-        println("offerRequest: ${offerRequest.bodyAsText()}")
+
+
         val silentExchange = http.post("${WALLET_URL}/wallet-api/api/useOfferRequest/$businessDid") {
             setBody(offerRequest.bodyAsText())
         }.bodyAsText()
 
-        println("silentExchange: $silentExchange")
-        if (silentExchange.toIntOrNull() == 0) throw Exception("Failed to issue VC for type $credentialType")
+        if (silentExchange.toIntOrNull() == 0) throw Exception("Failed to issue VCs for types $credentialTypes")
 
         return true
     }
@@ -178,7 +183,6 @@ object IssuerVcCredentialService {
         "credentialData" to credentialData,
         "mapping" to mapOf(
             "id" to "<uuid>",
-            "issuer" to mapOf("id" to ISSUER_DID),
             "credentialSubject" to mapOf("id" to "<subjectDid>"),
             "issuanceDate" to "<timestamp>",
             "expirationDate" to "<timestamp-in:365d>"
