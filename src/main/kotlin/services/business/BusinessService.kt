@@ -9,6 +9,7 @@ import id.walt.models.business.BusinessDataSource
 import id.walt.models.business.CompanyStatus
 import id.walt.services.credentials.IssuerVcCredentialService.issue
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.toList
 import kotlinx.serialization.json.JsonObject
 import org.bson.types.ObjectId
@@ -55,6 +56,18 @@ class BusinessService : BusinessDataSource {
         credentialTypes: List<String>,
         customCredential: JsonObject? = null,
     ): Boolean {
+
+
+        val business = Database.business.find(eq("registration_number", registrationNumber)).firstOrNull()
+            ?: throw IllegalStateException("Business not found with registration number: $registrationNumber")
+
+        val businessDid = business.wallet_did
+
+        val issued = issue(business, businessDid, credentialTypes, customCredential)
+
+        if (issued == false) {
+            throw IllegalStateException("Failed to issue VC for business with registration number: $registrationNumber")
+        }
         val result = Database.business.updateOne(
             Filters.and(
                 eq("registration_number", registrationNumber),
@@ -66,16 +79,6 @@ class BusinessService : BusinessDataSource {
                 Updates.set("approved_by", accountId)
             )
         )
-
-        val business = Database.business.find(eq("registration_number", registrationNumber)).first()
-        val businessDid = business.wallet_did
-
-        for (type in credentialTypes) {
-            val isCustom = type == "custom"
-            issue(business, businessDid, type, if (isCustom) customCredential else null)
-        }
-
-
         return result.wasAcknowledged()
     }
 
