@@ -54,6 +54,7 @@ dependencies {
 
     // Ktor server
     implementation("io.ktor:ktor-server-core-jvm:${Versions.KTOR_VERSION}")
+    implementation("io.ktor:ktor-server-auth:${Versions.KTOR_VERSION}")
     implementation("io.ktor:ktor-server-auth-jvm:${Versions.KTOR_VERSION}")
     implementation("io.ktor:ktor-server-double-receive-jvm:${Versions.KTOR_VERSION}")
     implementation("io.ktor:ktor-server-auto-head-response-jvm:${Versions.KTOR_VERSION}")
