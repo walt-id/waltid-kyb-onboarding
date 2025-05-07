@@ -5,7 +5,6 @@ import id.walt.security.token.JwtTokenService
 import io.github.smiley4.ktorswaggerui.dsl.routing.post
 import io.github.smiley4.ktorswaggerui.dsl.routing.route
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
@@ -69,7 +68,7 @@ object UserController {
         }) {
             val account = call.receive<JsonObject>()
             val user = Account(
-                email = account["email"]?.jsonPrimitive?.content ?: "",
+                email = account["email"]?.jsonPrimitive?.content?.trim()?.lowercase() ?: "",
                 password = BCrypt.hashpw(account["password"]?.jsonPrimitive?.content ?: "", BCrypt.gensalt()),
                 company = account["company"]?.jsonPrimitive?.content ?: "",
                 role = account["role"]?.jsonPrimitive?.content ?: "",
@@ -119,17 +118,14 @@ object UserController {
                     "Missing password",
                     status = HttpStatusCode.BadRequest
                 )
-
-                val account = UserService().authenticate(email.toString(), password.toString())
-                if (account != null) {
-                    val token = JwtTokenService().generateToken(
-                        account
-                    )
-                    call.respond(mapOf("token" to token))
-                } else {
-                    call.respondText("Invalid credentials", status = HttpStatusCode.Unauthorized)
-                }
-                context.respond(HttpStatusCode.OK to "Successful Request ")
+                println("email: $email , password : $password")
+                val account = UserService().authenticate(email.jsonPrimitive.content, password.jsonPrimitive.content)
+                println("account: $account")
+                val token = JwtTokenService().generateToken(
+                    account
+                )
+                call.respond(mapOf("token" to token))
+                call.respond(HttpStatusCode.OK)
             }.onFailure {
                 throw it
             }

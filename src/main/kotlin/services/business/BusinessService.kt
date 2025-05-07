@@ -9,7 +9,9 @@ import id.walt.models.business.BusinessDataSource
 import id.walt.models.business.CompanyStatus
 import id.walt.services.credentials.IssuerVcCredentialService.issue
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.toList
+import kotlinx.serialization.json.JsonObject
 import org.bson.types.ObjectId
 
 class BusinessService : BusinessDataSource {
@@ -48,39 +50,35 @@ class BusinessService : BusinessDataSource {
 
     }
 
-    suspend fun approveAndIssueVC(AccountId: String, registration_number: String): Boolean {
-        //  val obj = ObjectId(businessId)
+    suspend fun approveAndIssueVC(
+        accountId: String,
+        registrationNumber: String,
+        credentialTypes: List<String>,
+        customCredential: JsonObject? = null,
+    ): Boolean {
+
+
+        val business = Database.business.find(eq("registration_number", registrationNumber)).firstOrNull()
+            ?: throw IllegalStateException("Business not found with registration number: $registrationNumber")
+
+        val businessDid = business.wallet_did
+
+        val issued = issue(business, businessDid, credentialTypes, customCredential)
+
+        if (issued == false) {
+            throw IllegalStateException("Failed to issue VC for business with registration number: $registrationNumber")
+        }
         val result = Database.business.updateOne(
             Filters.and(
-                eq("registration_number", registration_number),
-                eq("adminId", AccountId)
+                eq("registration_number", registrationNumber),
+                eq("adminId", accountId)
             ),
             Updates.combine(
                 Updates.set("status", CompanyStatus.APPROVED),
                 Updates.set("approved", true),
-                Updates.set("approved_by", AccountId)
+                Updates.set("approved_by", accountId)
             )
         )
-
-        val business = Database.business.find(eq("registration_number", registration_number)).first()
-        val business_did = business.wallet_did
-
-        // Issue VC
-
-        val issueVC = issue(
-            legal_name = business.legal_name,
-            business_type = business.business_type,
-            registration_address = business.registration_address,
-            registration_number = business.registration_number,
-            phone_number = business.phone_number,
-            website = business.website,
-            business_did = business_did
-        )
-
-        println(
-            "VC issued: $issueVC"
-        )
-
         return result.wasAcknowledged()
     }
 
