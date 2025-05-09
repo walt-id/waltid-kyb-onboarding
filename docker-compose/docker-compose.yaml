@@ -49,7 +49,7 @@ services:
     ports:
       - "7004:7004"
     volumes:
-      - ./config:/config
+      - ./config:/waltid-kyb-onboarding/config
     networks:
       - mongodb_network
     depends_on:
