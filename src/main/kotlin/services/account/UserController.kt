@@ -20,38 +20,10 @@ object UserController {
 
     @OptIn(ExperimentalUuidApi::class)
     private fun Route.initRoutes() {
-//        get({
-//            summary = "Get initialized wallet information"
-//            description = "Get initialization information about an already initialized wallet"
-//            response {
-//                HttpStatusCode.OK to { body<Account>() }
-//            }
-//        }) {
-//            val (_, accountId) = getTenantAndAccount(ROLE_USER, ROLE_SERVICE)
-//            val account = InitializationService.getAccount(accountId) ?: throw BadRequestException("Wallet not initialized")
-//
-//            val redactedAccount = account.copy(keys = account.keys.map { accountKey ->
-//                if (accountKey.data.key !is AzureKey) accountKey
-//                else {
-//                    val originalKey = accountKey.data.key as AzureKey
-//
-//                    val newKey = AzureKey(
-//                        id = originalKey.id,
-//                        auth = AzureAuth("[redacted]", "[redacted]", "[redacted]", "[redacted]"),
-//                        _keyType = originalKey.keyType,
-//                        _publicKey = DirectSerializedKey(originalKey.getPublicKey())
-//                    )
-//
-//                    accountKey.copy(data = DirectSerializedKey(newKey))
-//                }
-//            })
-//
-//            context.respond(redactedAccount)
-//        }
 
-        post<Account>({
-            summary = "Register User"
-            description = "Add a new User to the system"
+        post<Account>("/register", {
+            summary = "Register a dataspace owner"
+            description = "Add a new dataspace owner to the system"
             request {
                 body<JsonObject> {
                     description =
@@ -62,7 +34,7 @@ object UserController {
             }
             response {
                 HttpStatusCode.Created to {
-                    description = "User added"
+                    description = "Dataspace owner added"
                 }
             }
         }) {
@@ -83,8 +55,8 @@ object UserController {
 
 
         post("/login", {
-            summary = "Login User"
-            description = "Login a User to the system"
+            summary = "Login Dataspace owner"
+            description = "Login a Dataspace owner to the system"
             request {
                 body<JsonObject> {
                     description =
@@ -118,9 +90,7 @@ object UserController {
                     "Missing password",
                     status = HttpStatusCode.BadRequest
                 )
-                println("email: $email , password : $password")
                 val account = UserService().authenticate(email.jsonPrimitive.content, password.jsonPrimitive.content)
-                println("account: $account")
                 val token = JwtTokenService().generateToken(
                     account
                 )
@@ -131,13 +101,13 @@ object UserController {
             }
         }
 
-        get("/admins") {
+        get("/all") {
             call.respond(UserService().getAllUsers())
         }
 
 
         authenticate("auth-jwt") {
-            get("/admin/profile") {
+            get("/id") {
                 val principal = call.principal<JWTPrincipal>()
                 val adminId = principal!!.payload.getClaim("adminId").asString()
                 call.respond(mapOf("adminId" to adminId))
@@ -149,8 +119,8 @@ object UserController {
 
     }
 
-    fun Route.registerRoutes() = route("User", {
-        tags("Users")
+    fun Route.registerRoutes() = route("operator", {
+        tags("Operator")
     }) {
         initRoutes()
     }

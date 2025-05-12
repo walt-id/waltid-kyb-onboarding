@@ -17,7 +17,7 @@ import org.bson.types.ObjectId
 object BusinessController {
 
     private fun Route.initRoutes() {
-        post<Business>({
+        post<Business>("/register", {
             summary = "Register Business"
             description = "Add a new Business to the system"
             request {
@@ -43,7 +43,7 @@ object BusinessController {
 
         authenticate("auth-jwt") {
 
-            get("/admin/companies/pending") {
+            get("/pending") {
                 val principal = call.principal<JWTPrincipal>() ?: return@get call.respond(HttpStatusCode.Unauthorized)
                 val adminId =
                     principal.getClaim("adminId", String::class) ?: return@get call.respond(HttpStatusCode.Unauthorized)
@@ -53,7 +53,9 @@ object BusinessController {
                 call.respond(pendingCompanies)
             }
 
-            post("/admin/companies/approve", {
+            post("/approve", {
+                summary = "Approve Business"
+                description = "Approve a Business and issue a Verifiable Credential (VC)"
                 request {
                     body<JsonObject> {
                         description = "Company to approve. The company will be approved with the provided information."
@@ -104,7 +106,9 @@ object BusinessController {
             }
 
 
-            post("/admin/companies/reject", {
+            post("/reject", {
+                summary = "Reject Business"
+                description = "Reject a Business"
                 request {
                     body<JsonObject> {
                         description =
@@ -147,7 +151,7 @@ object BusinessController {
     }
 
 
-    fun Route.registerRoutes() = route("Business", {
+    fun Route.registerRoutes() = route("business", {
         tags("Business")
     }) {
         initRoutes()
