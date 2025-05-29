@@ -25,5 +25,9 @@ data class Business(
     val approved_by: String? = null,
     @Contextual val adminId: String? = null,
     val status: CompanyStatus = CompanyStatus.PENDING,
-
+    val credentials: List<String> = listOf(
+        "LegalPerson",
+        "LegalRegistrationNumber",
+        "GaiaXTermsAndConditions"
+    ),
     )
