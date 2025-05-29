@@ -23,7 +23,7 @@ data class Business(
     val website: String,
     val approved: Boolean? = false,
     val approved_by: String? = null,
-    @Contextual val adminId: String? = null,
+    @Contextual val dataSpaceId: String? = null,
     val status: CompanyStatus = CompanyStatus.PENDING,
     val credentials: List<String> = listOf(
         "LegalPerson",
