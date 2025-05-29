@@ -44,12 +44,11 @@ object UserController {
                 password = BCrypt.hashpw(account["password"]?.jsonPrimitive?.content ?: "", BCrypt.gensalt()),
                 company = account["company"]?.jsonPrimitive?.content ?: "",
                 role = account["role"]?.jsonPrimitive?.content ?: "",
-                dataSpace = account["dataSpace"]?.jsonPrimitive?.content ?: ""
+                dataSpaceId = account["dataSpaceId"]?.jsonPrimitive?.content ?: ""
             )
 
 
             UserService().createUser(user)
-            println("user created")
             call.respond(HttpStatusCode.Created)
         }
 
@@ -109,8 +108,8 @@ object UserController {
         authenticate("auth-jwt") {
             get("/id") {
                 val principal = call.principal<JWTPrincipal>()
-                val adminId = principal!!.payload.getClaim("adminId").asString()
-                call.respond(mapOf("adminId" to adminId))
+                val dataSpaceId = principal!!.payload.getClaim("dataSpaceId").asString()
+                call.respond(mapOf("dataSpaceId" to dataSpaceId))
             }
         }
 

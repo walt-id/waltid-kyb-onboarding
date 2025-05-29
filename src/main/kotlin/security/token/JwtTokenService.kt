@@ -12,7 +12,7 @@ class JwtTokenService : TokenService {
         return JWT.create()
             .withIssuer(issuer)
             .withAudience(audience)
-            .withClaim("adminId", Account.id.toString())
+            .withClaim("dataSpaceId", Account.dataSpaceId)
             .withExpiresAt(Date(System.currentTimeMillis() + validityInMs))
             .sign(Algorithm.HMAC256(secret))
     }
