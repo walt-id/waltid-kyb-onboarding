@@ -11,7 +11,6 @@ import id.walt.services.credentials.IssuerVcCredentialService.issue
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.toList
-import kotlinx.serialization.json.JsonObject
 import org.bson.types.ObjectId
 
 class BusinessService : BusinessDataSource {
@@ -19,30 +18,34 @@ class BusinessService : BusinessDataSource {
         Database.business.countDocuments(eq("registration_number", registration_number)) >= 1
 
 
-    override suspend fun createBusiness(business: Business, adminId: String): Business {
+    override suspend fun createBusiness(business: Business, dataSpaceId: String): Business {
         if (isBusinessExisting(business.registration_number)) {
             error("Business with ${business.registration_number} already exists")
         }
-        val newBusiness = business.copy(adminId = adminId)
+        val newBusiness = business.copy(dataSpaceId = dataSpaceId)
         Database.business.insertOne(newBusiness)
         return business
     }
 
-    suspend fun getPendingBusiness(AccountId: String): List<Business> {
+    suspend fun getPendingBusiness(dataSpaceId: String): List<Business> {
         return Database.business.find(
             Filters.and(
                 eq("status", CompanyStatus.PENDING),
-                eq("adminId", AccountId)
+                eq("dataSpaceId", dataSpaceId)
             )
 
         ).toList()
     }
 
-    suspend fun updateCompanyStatus(AccountId: String, registration_number: String, newStatus: CompanyStatus): Boolean {
+    suspend fun updateCompanyStatus(
+        dataSpaceId: String,
+        registration_number: String,
+        newStatus: CompanyStatus,
+    ): Boolean {
         val result = Database.business.updateOne(
             Filters.and(
                 eq("registration_number", registration_number),
-                eq("adminId", AccountId)
+                eq("dataSpaceId", dataSpaceId)
             ),
             Updates.set("status", newStatus)
         )
@@ -53,8 +56,6 @@ class BusinessService : BusinessDataSource {
     suspend fun approveAndIssueVC(
         accountId: String,
         registrationNumber: String,
-        credentialTypes: List<String>,
-        customCredential: JsonObject? = null,
     ): Boolean {
 
 
@@ -63,7 +64,7 @@ class BusinessService : BusinessDataSource {
 
         val businessDid = business.wallet_did
 
-        val issued = issue(business, businessDid, credentialTypes, customCredential)
+        val issued = issue(business, businessDid)
 
         if (issued == false) {
             throw IllegalStateException("Failed to issue VC for business with registration number: $registrationNumber")
@@ -83,7 +84,6 @@ class BusinessService : BusinessDataSource {
     }
 
     override suspend fun getBusinessById(id: String): Business? {
-        println("id: $id")
         return Database.business.find(eq("_id", ObjectId(id))).first()
     }
 
