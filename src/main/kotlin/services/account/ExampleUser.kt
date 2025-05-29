@@ -17,7 +17,7 @@ object ExampleUser {
             "password": "securepassword123",
             "company": "Walt ID",
             "role": "admin",
-            "dataSpace" :"walt"
+            "dataSpaceId" :"walt"
         }
         """.trimIndent()
 

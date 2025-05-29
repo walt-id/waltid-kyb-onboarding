@@ -17,6 +17,7 @@ object Examples {
         {
             "legal_name": "Walt ID",
             "wallet_did": "did:key:z6MkjoRhq1jSNJdLiruSXrFFxagqrztZaXHqHGUTKJbcNywp",
+            "wallet_url" : "http://127.0.0.1:7001",
             "business_type": "Technology",
             "registration_address": "Walt Street 1",
             "registration_number": "1234567890",
@@ -25,7 +26,12 @@ object Examples {
             "lei_code": "1234567890",
             "phone_number": "+1234567890",
             "website": "https://walt.id",
-            "adminId": "5f7b1b3b7f7b7b7b7b7b7b7b"
+            "dataSpaceId": "walt",
+            "credentials": [
+                "LegalPerson",
+                "LegalRegistrationNumber",
+                "GaiaXTermsAndConditions"
+            ]
             
         }
         """.trimIndent()
@@ -33,11 +39,11 @@ object Examples {
     )
 
     // language=json
-    val businessUpdateRequestBodyExample = jsonObjectValueExampleDescriptorDsl(
+    val approveBusinessExample = jsonObjectValueExampleDescriptorDsl(
         """
           {
           "registration_number": "ABC123",
-          "credentialTypes": ["GaiaXTermsAndConditions", "LegalPerson", "custom"],
+          "credentialTypes": ["GaiaXTermsAndConditions", "LegalPerson", "LegalRegistrationNumber"],
           "customCredential": {
             "@context": [
               "https://www.w3.org/2018/credentials/v1",
@@ -49,6 +55,15 @@ object Examples {
               "customAttribute": "customValue"
             }
           }
+        }
+        """.trimIndent()
+    )
+
+    // language=json
+    val rejectBusinessExample = jsonObjectValueExampleDescriptorDsl(
+        """
+          {
+          "registration_number": "ABC123"
         }
         """.trimIndent()
     )
