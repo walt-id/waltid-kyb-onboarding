@@ -42,11 +42,11 @@ class UserService() : UserDataSource {
             .toList()
             .map { account ->
                 AccountDTO(
-                    id = account.id, // Convert ObjectId to String
+                    id = account.id,
                     email = account.email,
                     company = account.company,
                     role = account.role,
-                    dataSpace = account.dataSpace // Ensure this field exists in Account
+                    dataSpaceId = account.dataSpaceId
                 )
             }
     }
