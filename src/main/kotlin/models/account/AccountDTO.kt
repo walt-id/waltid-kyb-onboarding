@@ -9,6 +9,6 @@ data class AccountDTO(
     val email: String,
     val company: String,
     val role: String,
-    val dataSpace: String
+    val dataSpaceId: String,
 )
 
