@@ -47,15 +47,9 @@ object IssuerVcCredentialService {
     suspend fun issue(
         business: Business,
         businessDid: String,
-        credentialTypes: List<String>,
-        customCredential: JsonObject? = null,
     ): Boolean {
-        val credentialRequests = credentialTypes.mapNotNull { credentialType ->
+        val credentialRequests = business.credentials.map { credentialType ->
             when {
-                credentialType == "custom" && customCredential != null -> {
-                    customCredential
-                }
-
                 credentialType == "GaiaXTermsAndConditions" -> {
                     buildGaiaXTermsAndConditionsCredential(businessDid)
                 }
@@ -74,8 +68,8 @@ object IssuerVcCredentialService {
             }
         }
 
-        if (credentialRequests.isEmpty()) {
-            throw Exception("No valid credential requests found for types: $credentialTypes")
+        if (business.credentials.isEmpty()) {
+            throw Exception("No valid credential requests found for types: ${business.credentials}")
         }
 
         val requestBody = credentialRequests.map { it.toJsonElement().jsonObject }
@@ -86,11 +80,13 @@ object IssuerVcCredentialService {
         }
 
 
-        val silentExchange = http.post("${WALLET_URL}/wallet-api/api/useOfferRequest/$businessDid") {
+        val silentExchange = http.post("${business.wallet_url}/wallet-api/api/useOfferRequest/$businessDid") {
             setBody(offerRequest.bodyAsText())
-        }.bodyAsText()
+        }
 
-        if (silentExchange.toIntOrNull() == 0) throw Exception("Failed to issue VCs for types $credentialTypes")
+        if (silentExchange.bodyAsText()
+                .toIntOrNull() == 0 || !silentExchange.status.isSuccess()
+        ) throw Exception("Failed to issue VCs for types ${business.credentials}")
 
         return true
     }
