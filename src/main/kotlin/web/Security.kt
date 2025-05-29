@@ -23,7 +23,7 @@ fun Application.configureSecurity() {
                     .build()
             )
             validate { credential ->
-                if (credential.payload.getClaim("adminId")
+                if (credential.payload.getClaim("dataSpaceId")
                         .asString() != null
                 ) JWTPrincipal(credential.payload) else null
             }
