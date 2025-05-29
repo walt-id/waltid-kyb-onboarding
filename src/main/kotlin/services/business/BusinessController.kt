@@ -11,8 +11,8 @@ import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.serialization.json.*
-import org.bson.types.ObjectId
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 object BusinessController {
 
@@ -35,8 +35,8 @@ object BusinessController {
             }
         }) {
             val business = call.receive<Business>()
-            val adminId = business.adminId.toString()
-            BusinessService().createBusiness(business = business, adminId = adminId)
+            val dataSpaceId = business.dataSpaceId.toString()
+            BusinessService().createBusiness(business = business, dataSpaceId = dataSpaceId)
             call.respond(HttpStatusCode.Created)
         }
 
@@ -45,11 +45,12 @@ object BusinessController {
 
             get("/pending") {
                 val principal = call.principal<JWTPrincipal>() ?: return@get call.respond(HttpStatusCode.Unauthorized)
-                val adminId =
-                    principal.getClaim("adminId", String::class) ?: return@get call.respond(HttpStatusCode.Unauthorized)
+                val dataSpaceId =
+                    principal.getClaim("dataSpaceId", String::class)
+                        ?: return@get call.respond(HttpStatusCode.Unauthorized)
 
 
-                val pendingCompanies = BusinessService().getPendingBusiness(adminId)
+                val pendingCompanies = BusinessService().getPendingBusiness(dataSpaceId)
                 call.respond(pendingCompanies)
             }
 
@@ -59,7 +60,7 @@ object BusinessController {
                 request {
                     body<JsonObject> {
                         description = "Company to approve. The company will be approved with the provided information."
-                        example("Minimal example", Examples.businessUpdateRequestBodyExample)
+                        example("Minimal example", Examples.approveBusinessExample)
                     }
                 }
                 response {
@@ -76,26 +77,17 @@ object BusinessController {
             }) {
 
                 val request = call.receive<JsonObject>()
-                val businessId = request["registration_number"]?.jsonPrimitive?.content
+                val registrationNumber = request["registration_number"]?.jsonPrimitive?.content
                     ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing registration_number")
 
-                val accountId = call.principal<JWTPrincipal>()?.getClaim("adminId", String::class)
+                val accountId = call.principal<JWTPrincipal>()?.getClaim("dataSpaceId", String::class)
                     ?: return@post call.respond(HttpStatusCode.Unauthorized)
 
-                val credentialTypes = request["credentialTypes"]
-                    ?.jsonArray
-                    ?.mapNotNull { it.jsonPrimitive.contentOrNull }
-                    ?.filter { it.isNotBlank() }
-                    .takeIf { it?.isNotEmpty() ?: false }
-                    ?: listOf("DefaultVC")
 
-                val customCredential = request["customCredential"]?.jsonObject
 
                 val approved = BusinessService().approveAndIssueVC(
                     accountId,
-                    businessId,
-                    credentialTypes = credentialTypes,
-                    customCredential = customCredential
+                    registrationNumber
                 )
 
                 if (approved) {
@@ -113,7 +105,7 @@ object BusinessController {
                     body<JsonObject> {
                         description =
                             "Company to reject. The company will be rejected with the provided information."
-                        example("Minimal example", Examples.businessUpdateRequestBodyExample)
+                        example("Minimal example", Examples.rejectBusinessExample)
                     }
                 }
                 response {
@@ -130,13 +122,13 @@ object BusinessController {
                 }
             }) {
                 val request = call.receive<JsonObject>()
-                val businessId = request["registration_number"]?.jsonPrimitive?.content.toString()
-                val accountId = call.principal<JWTPrincipal>()?.getClaim("adminId", String::class)
+                val registrationNumber = request["registration_number"]?.jsonPrimitive?.content.toString()
+                val dataSpaceId = call.principal<JWTPrincipal>()?.getClaim("dataSpaceId", String::class)
                     ?: return@post call.respond(HttpStatusCode.Unauthorized)
                 val updated =
                     BusinessService().updateCompanyStatus(
-                        accountId,
-                        ObjectId(businessId).toString(),
+                        dataSpaceId,
+                        registrationNumber,
                         CompanyStatus.REJECTED
                     )
                 if (updated) {
