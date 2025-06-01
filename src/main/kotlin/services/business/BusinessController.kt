@@ -12,6 +12,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonPrimitive
 
 object BusinessController {
@@ -75,9 +76,9 @@ object BusinessController {
                     }
                 }
             }) {
-
                 val request = call.receive<JsonObject>()
-                val registrationNumber = request["registration_number"]?.jsonPrimitive?.content
+                val termsAndConditions = request["termsAndConditions"]?.jsonPrimitive?.contentOrNull
+                val businessUUID = request["businessUUID"]?.jsonPrimitive?.content
                     ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing registration_number")
 
                 val accountId = call.principal<JWTPrincipal>()?.getClaim("dataSpaceId", String::class)
@@ -87,7 +88,8 @@ object BusinessController {
 
                 val approved = BusinessService().approveAndIssueVC(
                     accountId,
-                    registrationNumber
+                    businessUUID,
+                    termsAndConditions
                 )
 
                 if (approved) {
@@ -122,13 +124,13 @@ object BusinessController {
                 }
             }) {
                 val request = call.receive<JsonObject>()
-                val registrationNumber = request["registration_number"]?.jsonPrimitive?.content.toString()
+                val businessUUID = request["businessUUID"]?.jsonPrimitive?.content.toString()
                 val dataSpaceId = call.principal<JWTPrincipal>()?.getClaim("dataSpaceId", String::class)
                     ?: return@post call.respond(HttpStatusCode.Unauthorized)
                 val updated =
                     BusinessService().updateCompanyStatus(
                         dataSpaceId,
-                        registrationNumber,
+                        businessUUID,
                         CompanyStatus.REJECTED
                     )
                 if (updated) {

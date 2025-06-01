@@ -2,6 +2,7 @@ package id.walt.models.business
 
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
+import java.util.*
 
 
 enum class CompanyStatus {
@@ -10,6 +11,7 @@ enum class CompanyStatus {
 
 @Serializable
 data class Business(
+    val uuid: String = UUID.randomUUID().toString(),
     val legal_name: String,
     val wallet_did: String,
     val wallet_url: String,

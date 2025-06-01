@@ -39,12 +39,12 @@ class BusinessService : BusinessDataSource {
 
     suspend fun updateCompanyStatus(
         dataSpaceId: String,
-        registration_number: String,
+        businessUUID: String,
         newStatus: CompanyStatus,
     ): Boolean {
         val result = Database.business.updateOne(
             Filters.and(
-                eq("registration_number", registration_number),
+                eq("businessUUID", businessUUID),
                 eq("dataSpaceId", dataSpaceId)
             ),
             Updates.set("status", newStatus)
@@ -55,23 +55,24 @@ class BusinessService : BusinessDataSource {
 
     suspend fun approveAndIssueVC(
         accountId: String,
-        registrationNumber: String,
+        businessUUID: String,
+        termsAndConditions: String? = null
     ): Boolean {
 
 
-        val business = Database.business.find(eq("registration_number", registrationNumber)).firstOrNull()
-            ?: throw IllegalStateException("Business not found with registration number: $registrationNumber")
+        val business = Database.business.find(eq("uuid", businessUUID)).firstOrNull()
+            ?: throw IllegalStateException("Business not found with uuid: $businessUUID")
 
         val businessDid = business.wallet_did
 
-        val issued = issue(business, businessDid)
+        val issued = issue(business, businessDid , termsAndConditions)
 
-        if (issued == false) {
-            throw IllegalStateException("Failed to issue VC for business with registration number: $registrationNumber")
+        if (!issued) {
+            throw IllegalStateException("Failed to issue VC for business with uuid : $businessUUID")
         }
         val result = Database.business.updateOne(
             Filters.and(
-                eq("registration_number", registrationNumber),
+                eq("uuid", businessUUID),
                 eq("adminId", accountId)
             ),
             Updates.combine(
@@ -83,7 +84,7 @@ class BusinessService : BusinessDataSource {
         return result.wasAcknowledged()
     }
 
-    override suspend fun getBusinessById(id: String): Business? {
+    override suspend fun getBusinessById(id: String): Business {
         return Database.business.find(eq("_id", ObjectId(id))).first()
     }
 
