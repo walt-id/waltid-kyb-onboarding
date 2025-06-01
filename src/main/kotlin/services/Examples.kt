@@ -42,19 +42,7 @@ object Examples {
     val approveBusinessExample = jsonObjectValueExampleDescriptorDsl(
         """
           {
-          "registration_number": "ABC123",
-          "credentialTypes": ["GaiaXTermsAndConditions", "LegalPerson", "LegalRegistrationNumber"],
-          "customCredential": {
-            "@context": [
-              "https://www.w3.org/2018/credentials/v1",
-              "https://example.org/custom-context"
-            ],
-            "type": ["VerifiableCredential", "CustomType"],
-            "credentialSubject": {
-              "id": "did:web:example.org",
-              "customAttribute": "customValue"
-            }
-          }
+          "businessUUID": "c6d2e689-5aad-4d87-b2d8-b333de285c04"
         }
         """.trimIndent()
     )
@@ -63,7 +51,7 @@ object Examples {
     val rejectBusinessExample = jsonObjectValueExampleDescriptorDsl(
         """
           {
-          "registration_number": "ABC123"
+          "businessUUID": "c6d2e689-5aad-4d87-b2d8-b333de285c04"
         }
         """.trimIndent()
     )
