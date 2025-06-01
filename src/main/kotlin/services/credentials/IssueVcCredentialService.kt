@@ -39,19 +39,17 @@ object IssuerVcCredentialService {
         }
     }
 
-    private suspend fun requestIssuance(requestBody: JsonObject) =
-        http.post("${ISSUER_URL}/openid4vc/jwt/issueBatch") {
-            setBody(requestBody)
-        }.bodyAsText()
 
     suspend fun issue(
         business: Business,
         businessDid: String,
+        termsAndConditions: String? = null
     ): Boolean {
         val credentialRequests = business.credentials.map { credentialType ->
             when {
                 credentialType == "GaiaXTermsAndConditions" -> {
-                    buildGaiaXTermsAndConditionsCredential(businessDid)
+                    buildGaiaXTermsAndConditionsCredential(businessDid , termsAndConditions!!)
+
                 }
 
                 credentialType == "LegalPerson" -> {
@@ -79,7 +77,6 @@ object IssuerVcCredentialService {
             setBody(requestBody)
         }
 
-
         val silentExchange = http.post("${business.wallet_url}/wallet-api/api/useOfferRequest/$businessDid") {
             setBody(offerRequest.bodyAsText())
         }
@@ -93,7 +90,7 @@ object IssuerVcCredentialService {
 
 
     @OptIn(ExperimentalTime::class)
-    fun buildGaiaXTermsAndConditionsCredential(businessDid: String): JsonObject {
+    fun buildGaiaXTermsAndConditionsCredential(businessDid: String, termsAndConditions : String): JsonObject {
         return buildJwtIssueRequest(
             configurationId = "GaiaXTermsAndConditions_jwt_vc_json",
             credentialData = mapOf(
@@ -106,7 +103,7 @@ object IssuerVcCredentialService {
                 "type" to listOf("VerifiableCredential", "GaiaXTermsAndConditions"),
                 "issuer" to ISSUER_DID,
                 "credentialSubject" to mapOf(
-                    "gx:termsAndConditions" to "...your terms...",
+                    "gx:termsAndConditions" to termsAndConditions,
                     "type" to "gx:GaiaXTermsAndConditions",
                     "id" to businessDid
                 )
