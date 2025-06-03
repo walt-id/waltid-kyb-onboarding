@@ -131,8 +131,10 @@ object IssuerVcCredentialService {
                     "type" to "gx:LegalPerson",
                     "gx:legalName" to business.legal_name,
                     "gx:legalRegistrationNumber" to mapOf("id" to business.registration_number),
-                    "gx:headquarterAddress" to mapOf("gx:countrySubdivisionCode" to business.country_code),
-                    "gx:legalAddress" to mapOf("gx:countrySubdivisionCode" to business.country_code)
+                    "gx:headquarterAddress" to mapOf(
+                        "gx:countrySubdivisionCode" to business.country_subdivision_code,
+                        "gx:streetAddress" to business.street_address,
+                    )
                 )
             )
         )
@@ -157,13 +159,13 @@ object IssuerVcCredentialService {
                     "type" to "gx:legalRegistrationNumber",
                     "id" to businessDid,
                     "gx:leiCode" to business.lei_code,
-                    "gx:leiCode-countryCode" to business.country_code
-                ),
-                "evidence" to listOf(
-                    mapOf(
-                        "gx:evidenceURL" to "https://api.gleif.org/api/v1/lei-records/",
-                        "gx:executionDate" to now.toString(),
-                        "gx:evidenceOf" to "gx:leiCode"
+                    "gx:leiCode-countryCode" to business.country_subdivision_code,
+                    "gx:leiCode-legalName" to business.legal_name,
+                    "gx:leiCode-legalAddress" to mapOf(
+                        "gx:countrySubdivisionCode" to business.country_subdivision_code,
+                        "gx:streetAddress" to business.street_address,
+                        "gx:postalCode" to business.postal_code,
+                        "gx:locality" to business.locality
                     )
                 )
             )
@@ -193,22 +195,11 @@ object IssuerVcCredentialService {
                     "legalName" to business.legal_name,
                     "website" to business.website,
                     "legalAddress" to mapOf(
-                        "countryCode" to business.country_code,
-                        "streetAddress" to business.registration_address,
-                        "postalCode" to business.postalCode,
+                        "countryCode" to business.country_subdivision_code,
+                        "streetAddress" to business.street_address,
+                        "postalCode" to business.postal_code,
                         "locality" to business.locality
                     ),
-                ),
-                "evidence" to listOf(
-                    mapOf(
-                        "Legal Name" to "$.credentialSubject.legalName",
-                        "Website" to "$.credentialSubject.website",
-                        "Legal Address Country Code" to "$.credentialSubject.legalAddress.countryCode",
-                        "Legal Address Street" to "$.credentialSubject.legalAddress.streetAddress",
-                        "Legal Address Postal Code" to "$.credentialSubject.legalAddress.postalCode",
-                        "Legal Address Locality" to "$.credentialSubject.legalAddress.locality",
-                        "Dataspace ID" to "$.credentialSubject.dataspaceId"
-                    )
                 )
             )
         )
