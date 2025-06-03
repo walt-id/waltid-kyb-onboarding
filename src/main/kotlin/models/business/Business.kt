@@ -20,6 +20,8 @@ data class Business(
     val registration_number: String,
     val phone_number: String,
     val country_code: String,
+    val postalCode: String? = null,
+    val locality: String? = null,
     val lei_code: String,
     val email: String,
     val website: String,
