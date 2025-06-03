@@ -44,11 +44,15 @@ class BusinessService : BusinessDataSource {
     ): Boolean {
         val result = Database.business.updateOne(
             Filters.and(
-                eq("businessUUID", businessUUID),
+                eq("uuid", businessUUID),
                 eq("dataSpaceId", dataSpaceId)
             ),
-            Updates.set("status", newStatus)
+            Updates.combine(
+                Updates.set("status", CompanyStatus.REJECTED),
+                Updates.set("approved", false)
+            )
         )
+        println("Successfully updated $result")
         return result.wasAcknowledged()
 
     }
@@ -73,7 +77,7 @@ class BusinessService : BusinessDataSource {
         val result = Database.business.updateOne(
             Filters.and(
                 eq("uuid", businessUUID),
-                eq("adminId", accountId)
+                eq("dataSpaceId", accountId)
             ),
             Updates.combine(
                 Updates.set("status", CompanyStatus.APPROVED),
