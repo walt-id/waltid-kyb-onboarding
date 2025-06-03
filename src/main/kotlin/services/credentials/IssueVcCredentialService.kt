@@ -23,7 +23,6 @@ object IssuerVcCredentialService {
     private val ISSUER_KEY = ConfigManager.getConfig<IssuerConfiguration>().issuerKey
     private val ISSUER_URL = ConfigManager.getConfig<IssuerConfiguration>().issuerUrl
     private val ISSUER_DID = ConfigManager.getConfig<IssuerConfiguration>().issuerDid
-    private val WALLET_URL = ConfigManager.getConfig<WalletConfiguration>().walletUrl
 
 
     private val http = HttpClient(CIO) {
