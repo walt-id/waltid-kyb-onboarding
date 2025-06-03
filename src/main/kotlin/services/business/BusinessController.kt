@@ -12,6 +12,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonPrimitive
 
@@ -77,7 +78,8 @@ object BusinessController {
                 }
             }) {
                 val request = call.receive<JsonObject>()
-                val termsAndConditions = request["termsAndConditions"]?.jsonPrimitive?.contentOrNull
+                val termsAndConditions = (request["termsAndConditions"] as? JsonPrimitive)
+                    ?.contentOrNull ?: "The PARTICIPANT signing the Self-Description agrees as follows:\\n- to update its descriptions about any changes, be it technical, organizational, or legal - especially but not limited to contractual in regards to the indicated attributes present in the descriptions.\\n\\nThe keypair used to sign Verifiable Credentials will be revoked where Gaia-X Association becomes aware of any inaccurate statements in regards to the claims which result in a non-compliance with the Trust Framework and policy rules defined in the Policy Rules and Labelling Document (PRLD)."
                 val businessUUID = request["businessUUID"]?.jsonPrimitive?.content
                     ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing registration_number")
 

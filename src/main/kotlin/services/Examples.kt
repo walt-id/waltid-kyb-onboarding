@@ -42,7 +42,8 @@ object Examples {
     val approveBusinessExample = jsonObjectValueExampleDescriptorDsl(
         """
           {
-          "businessUUID": "c6d2e689-5aad-4d87-b2d8-b333de285c04"
+          "businessUUID": "c6d2e689-5aad-4d87-b2d8-b333de285c04",
+          "termsAndConditions" : null
         }
         """.trimIndent()
     )
