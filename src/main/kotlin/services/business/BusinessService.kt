@@ -19,9 +19,7 @@ class BusinessService : BusinessDataSource {
 
 
     override suspend fun createBusiness(business: Business, dataSpaceId: String): Business {
-        if (isBusinessExisting(business.registration_number)) {
-            error("Business with ${business.registration_number} already exists")
-        }
+
         val newBusiness = business.copy(dataSpaceId = dataSpaceId)
         Database.business.insertOne(newBusiness)
         return business
