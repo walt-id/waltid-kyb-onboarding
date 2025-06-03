@@ -60,6 +60,10 @@ object IssuerVcCredentialService {
                     buildLegalRegistrationNumberCredential(business, businessDid)
                 }
 
+                credentialType == "DataspaceParticipantCredential" -> {
+                    buildDataSpaceParticipantCredential(business, businessDid)
+                }
+
                 else -> {
                     throw Exception("Unsupported credential type: $credentialType")
                 }
@@ -160,6 +164,50 @@ object IssuerVcCredentialService {
                         "gx:evidenceURL" to "https://api.gleif.org/api/v1/lei-records/",
                         "gx:executionDate" to now.toString(),
                         "gx:evidenceOf" to "gx:leiCode"
+                    )
+                )
+            )
+        )
+    }
+
+
+    @OptIn(ExperimentalTime::class)
+    fun buildDataSpaceParticipantCredential(business: Business, businessDid: String): JsonObject {
+        val now = Clock.System.now()
+        return buildJwtIssueRequest(
+            configurationId = "DataspaceParticipantCredential_jwt_vc_json",
+            credentialData = mapOf(
+                "@context" to listOf(
+                    "https://www.w3.org/2018/credentials/v1",
+                    "https://w3id.org/security/suites/jws-2020/v1"
+                ),
+                "id" to "urn:uuid:${UUID.randomUUID()}",
+                "type" to listOf("VerifiableCredential", "DataspaceParticipantCredential"),
+                "issuer" to ISSUER_DID,
+                "issuanceDate" to now.toString(),
+                "credentialSubject" to mapOf(
+                    "id" to businessDid,
+                    "@context" to "https://registry.lab.gaia-x.eu/development/api/trusted-shape-registry/v1/shapes/jsonld/trustframework#",
+                    "type" to "DataspaceParticipant",
+                    "dataspaceId" to business.dataSpaceId,
+                    "legalName" to business.legal_name,
+                    "website" to business.website,
+                    "legalAddress" to mapOf(
+                        "countryCode" to business.country_code,
+                        "streetAddress" to business.registration_address,
+                        "postalCode" to business.postalCode,
+                        "locality" to business.locality
+                    ),
+                ),
+                "evidence" to listOf(
+                    mapOf(
+                        "Legal Name" to "$.credentialSubject.legalName",
+                        "Website" to "$.credentialSubject.website",
+                        "Legal Address Country Code" to "$.credentialSubject.legalAddress.countryCode",
+                        "Legal Address Street" to "$.credentialSubject.legalAddress.streetAddress",
+                        "Legal Address Postal Code" to "$.credentialSubject.legalAddress.postalCode",
+                        "Legal Address Locality" to "$.credentialSubject.legalAddress.locality",
+                        "Dataspace ID" to "$.credentialSubject.dataspaceId"
                     )
                 )
             )
