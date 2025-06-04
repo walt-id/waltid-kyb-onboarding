@@ -158,7 +158,7 @@ object IssuerVcCredentialService {
                     "type" to "gx:legalRegistrationNumber",
                     "id" to businessDid,
                     "gx:leiCode" to business.lei_code,
-                    "gx:leiCode-countryCode" to business.country_subdivision_code,
+                    "gx:leiCode-countryCode" to business.address_country_code,
                     "gx:leiCode-legalName" to business.legal_name,
                     "gx:leiCode-legalAddress" to mapOf(
                         "gx:countrySubdivisionCode" to business.country_subdivision_code,
@@ -194,7 +194,7 @@ object IssuerVcCredentialService {
                     "legalName" to business.legal_name,
                     "website" to business.website,
                     "legalAddress" to mapOf(
-                        "countryCode" to business.country_subdivision_code,
+                        "countryCode" to business.address_country_code,
                         "streetAddress" to business.street_address,
                         "postalCode" to business.postal_code,
                         "locality" to business.locality
