@@ -13,6 +13,6 @@ data class Account(
     val password: String,
     val company: String,
     val role: String,
-    val dataSpace: String
+    val dataSpaceId: String,
 )
 

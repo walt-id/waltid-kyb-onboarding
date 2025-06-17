@@ -23,7 +23,6 @@ object IssuerVcCredentialService {
     private val ISSUER_KEY = ConfigManager.getConfig<IssuerConfiguration>().issuerKey
     private val ISSUER_URL = ConfigManager.getConfig<IssuerConfiguration>().issuerUrl
     private val ISSUER_DID = ConfigManager.getConfig<IssuerConfiguration>().issuerDid
-    private val WALLET_URL = ConfigManager.getConfig<WalletConfiguration>().walletUrl
 
 
     private val http = HttpClient(CIO) {
@@ -39,25 +38,17 @@ object IssuerVcCredentialService {
         }
     }
 
-    private suspend fun requestIssuance(requestBody: JsonObject) =
-        http.post("${ISSUER_URL}/openid4vc/jwt/issueBatch") {
-            setBody(requestBody)
-        }.bodyAsText()
 
     suspend fun issue(
         business: Business,
         businessDid: String,
-        credentialTypes: List<String>,
-        customCredential: JsonObject? = null,
+        termsAndConditions: String? = null
     ): Boolean {
-        val credentialRequests = credentialTypes.mapNotNull { credentialType ->
+        val credentialRequests = business.credentials.map { credentialType ->
             when {
-                credentialType == "custom" && customCredential != null -> {
-                    customCredential
-                }
-
                 credentialType == "GaiaXTermsAndConditions" -> {
-                    buildGaiaXTermsAndConditionsCredential(businessDid)
+                    buildGaiaXTermsAndConditionsCredential(businessDid , termsAndConditions!!)
+
                 }
 
                 credentialType == "LegalPerson" -> {
@@ -68,14 +59,18 @@ object IssuerVcCredentialService {
                     buildLegalRegistrationNumberCredential(business, businessDid)
                 }
 
+                credentialType == "DataspaceParticipantCredential" -> {
+                    buildDataSpaceParticipantCredential(business, businessDid)
+                }
+
                 else -> {
                     throw Exception("Unsupported credential type: $credentialType")
                 }
             }
         }
 
-        if (credentialRequests.isEmpty()) {
-            throw Exception("No valid credential requests found for types: $credentialTypes")
+        if (business.credentials.isEmpty()) {
+            throw Exception("No valid credential requests found for types: ${business.credentials}")
         }
 
         val requestBody = credentialRequests.map { it.toJsonElement().jsonObject }
@@ -85,19 +80,20 @@ object IssuerVcCredentialService {
             setBody(requestBody)
         }
 
-
-        val silentExchange = http.post("${WALLET_URL}/wallet-api/api/useOfferRequest/$businessDid") {
+        val silentExchange = http.post("${business.wallet_url}/wallet-api/api/useOfferRequest/$businessDid") {
             setBody(offerRequest.bodyAsText())
-        }.bodyAsText()
+        }
 
-        if (silentExchange.toIntOrNull() == 0) throw Exception("Failed to issue VCs for types $credentialTypes")
+        if (silentExchange.bodyAsText()
+                .toIntOrNull() == 0 || !silentExchange.status.isSuccess()
+        ) throw Exception("Failed to issue VCs for types ${business.credentials}")
 
         return true
     }
 
 
     @OptIn(ExperimentalTime::class)
-    fun buildGaiaXTermsAndConditionsCredential(businessDid: String): JsonObject {
+    fun buildGaiaXTermsAndConditionsCredential(businessDid: String, termsAndConditions : String): JsonObject {
         return buildJwtIssueRequest(
             configurationId = "GaiaXTermsAndConditions_jwt_vc_json",
             credentialData = mapOf(
@@ -110,7 +106,7 @@ object IssuerVcCredentialService {
                 "type" to listOf("VerifiableCredential", "GaiaXTermsAndConditions"),
                 "issuer" to ISSUER_DID,
                 "credentialSubject" to mapOf(
-                    "gx:termsAndConditions" to "...your terms...",
+                    "gx:termsAndConditions" to termsAndConditions,
                     "type" to "gx:GaiaXTermsAndConditions",
                     "id" to businessDid
                 )
@@ -134,8 +130,10 @@ object IssuerVcCredentialService {
                     "type" to "gx:LegalPerson",
                     "gx:legalName" to business.legal_name,
                     "gx:legalRegistrationNumber" to mapOf("id" to business.registration_number),
-                    "gx:headquarterAddress" to mapOf("gx:countrySubdivisionCode" to business.country_code),
-                    "gx:legalAddress" to mapOf("gx:countrySubdivisionCode" to business.country_code)
+                    "gx:headquarterAddress" to mapOf(
+                        "gx:countrySubdivisionCode" to business.country_subdivision_code,
+                        "gx:streetAddress" to business.street_address,
+                    )
                 )
             )
         )
@@ -160,14 +158,47 @@ object IssuerVcCredentialService {
                     "type" to "gx:legalRegistrationNumber",
                     "id" to businessDid,
                     "gx:leiCode" to business.lei_code,
-                    "gx:leiCode-countryCode" to business.country_code
-                ),
-                "evidence" to listOf(
-                    mapOf(
-                        "gx:evidenceURL" to "https://api.gleif.org/api/v1/lei-records/",
-                        "gx:executionDate" to now.toString(),
-                        "gx:evidenceOf" to "gx:leiCode"
+                    "gx:leiCode-countryCode" to business.address_country_code,
+                    "gx:leiCode-legalName" to business.legal_name,
+                    "gx:leiCode-legalAddress" to mapOf(
+                        "gx:countrySubdivisionCode" to business.country_subdivision_code,
+                        "gx:streetAddress" to business.street_address,
+                        "gx:postalCode" to business.postal_code,
+                        "gx:locality" to business.locality
                     )
+                )
+            )
+        )
+    }
+
+
+    @OptIn(ExperimentalTime::class)
+    fun buildDataSpaceParticipantCredential(business: Business, businessDid: String): JsonObject {
+        val now = Clock.System.now()
+        return buildJwtIssueRequest(
+            configurationId = "DataspaceParticipantCredential_jwt_vc_json",
+            credentialData = mapOf(
+                "@context" to listOf(
+                    "https://www.w3.org/2018/credentials/v1",
+                    "https://w3id.org/security/suites/jws-2020/v1"
+                ),
+                "id" to "urn:uuid:${UUID.randomUUID()}",
+                "type" to listOf("VerifiableCredential", "DataspaceParticipantCredential"),
+                "issuer" to ISSUER_DID,
+                "issuanceDate" to now.toString(),
+                "credentialSubject" to mapOf(
+                    "id" to businessDid,
+                    "@context" to "https://registry.lab.gaia-x.eu/development/api/trusted-shape-registry/v1/shapes/jsonld/trustframework#",
+                    "type" to "DataspaceParticipant",
+                    "dataspaceId" to business.dataSpaceId,
+                    "legalName" to business.legal_name,
+                    "website" to business.website,
+                    "legalAddress" to mapOf(
+                        "countryCode" to business.address_country_code,
+                        "streetAddress" to business.street_address,
+                        "postalCode" to business.postal_code,
+                        "locality" to business.locality
+                    ),
                 )
             )
         )

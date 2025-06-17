@@ -11,7 +11,6 @@ import id.walt.services.credentials.IssuerVcCredentialService.issue
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.toList
-import kotlinx.serialization.json.JsonObject
 import org.bson.types.ObjectId
 
 class BusinessService : BusinessDataSource {
@@ -19,59 +18,64 @@ class BusinessService : BusinessDataSource {
         Database.business.countDocuments(eq("registration_number", registration_number)) >= 1
 
 
-    override suspend fun createBusiness(business: Business, adminId: String): Business {
-        if (isBusinessExisting(business.registration_number)) {
-            error("Business with ${business.registration_number} already exists")
-        }
-        val newBusiness = business.copy(adminId = adminId)
+    override suspend fun createBusiness(business: Business, dataSpaceId: String): Business {
+
+        val newBusiness = business.copy(dataSpaceId = dataSpaceId)
         Database.business.insertOne(newBusiness)
         return business
     }
 
-    suspend fun getPendingBusiness(AccountId: String): List<Business> {
+    suspend fun getPendingBusiness(dataSpaceId: String): List<Business> {
         return Database.business.find(
             Filters.and(
                 eq("status", CompanyStatus.PENDING),
-                eq("adminId", AccountId)
+                eq("dataSpaceId", dataSpaceId)
             )
 
         ).toList()
     }
 
-    suspend fun updateCompanyStatus(AccountId: String, registration_number: String, newStatus: CompanyStatus): Boolean {
+    suspend fun updateCompanyStatus(
+        dataSpaceId: String,
+        businessUUID: String,
+        newStatus: CompanyStatus,
+    ): Boolean {
         val result = Database.business.updateOne(
             Filters.and(
-                eq("registration_number", registration_number),
-                eq("adminId", AccountId)
+                eq("uuid", businessUUID),
+                eq("dataSpaceId", dataSpaceId)
             ),
-            Updates.set("status", newStatus)
+            Updates.combine(
+                Updates.set("status", CompanyStatus.REJECTED),
+                Updates.set("approved", false)
+            )
         )
+        println("Successfully updated $result")
         return result.wasAcknowledged()
 
     }
 
     suspend fun approveAndIssueVC(
         accountId: String,
-        registrationNumber: String,
-        credentialTypes: List<String>,
-        customCredential: JsonObject? = null,
+        businessUUID: String,
+        termsAndConditions: String? = null
     ): Boolean {
 
 
-        val business = Database.business.find(eq("registration_number", registrationNumber)).firstOrNull()
-            ?: throw IllegalStateException("Business not found with registration number: $registrationNumber")
+        val business = Database.business.find(eq("uuid", businessUUID)).firstOrNull()
+            ?: throw IllegalStateException("Business not found with uuid: $businessUUID")
 
         val businessDid = business.wallet_did
 
-        val issued = issue(business, businessDid, credentialTypes, customCredential)
+        val issued = issue(business, businessDid , termsAndConditions)
 
-        if (issued == false) {
-            throw IllegalStateException("Failed to issue VC for business with registration number: $registrationNumber")
+        if (!issued) {
+            throw IllegalStateException("Failed to issue VC for business with uuid : $businessUUID")
         }
         val result = Database.business.updateOne(
             Filters.and(
-                eq("registration_number", registrationNumber),
-                eq("adminId", accountId)
+                eq("uuid", businessUUID),
+                eq("dataSpaceId", accountId)
             ),
             Updates.combine(
                 Updates.set("status", CompanyStatus.APPROVED),
@@ -82,8 +86,7 @@ class BusinessService : BusinessDataSource {
         return result.wasAcknowledged()
     }
 
-    override suspend fun getBusinessById(id: String): Business? {
-        println("id: $id")
+    override suspend fun getBusinessById(id: String): Business {
         return Database.business.find(eq("_id", ObjectId(id))).first()
     }
 

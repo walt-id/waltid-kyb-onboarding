@@ -17,15 +17,24 @@ object Examples {
         {
             "legal_name": "Walt ID",
             "wallet_did": "did:key:z6MkjoRhq1jSNJdLiruSXrFFxagqrztZaXHqHGUTKJbcNywp",
+            "wallet_url" : "http://127.0.0.1:7001",
             "business_type": "Technology",
-            "registration_address": "Walt Street 1",
             "registration_number": "1234567890",
-            "email": "walt@id",
-            "country_code": "US",
-            "lei_code": "1234567890",
             "phone_number": "+1234567890",
+            "country_subdivision_code" : "DE-HH",
+            "address_country_code": "DE",
+            "street_address": "123 Main St",
+            "postal_code": "12345",
+            "locality": "Walt City",
+            "lei_code": "1234567890",
+            "email": "walt@id",
             "website": "https://walt.id",
-            "adminId": "5f7b1b3b7f7b7b7b7b7b7b7b"
+            "dataSpaceId": "walt",
+            "credentials": [
+                "LegalPerson",
+                "LegalRegistrationNumber",
+                "GaiaXTermsAndConditions"
+            ]
             
         }
         """.trimIndent()
@@ -33,22 +42,20 @@ object Examples {
     )
 
     // language=json
-    val businessUpdateRequestBodyExample = jsonObjectValueExampleDescriptorDsl(
+    val approveBusinessExample = jsonObjectValueExampleDescriptorDsl(
         """
           {
-          "registration_number": "ABC123",
-          "credentialTypes": ["GaiaXTermsAndConditions", "LegalPerson", "custom"],
-          "customCredential": {
-            "@context": [
-              "https://www.w3.org/2018/credentials/v1",
-              "https://example.org/custom-context"
-            ],
-            "type": ["VerifiableCredential", "CustomType"],
-            "credentialSubject": {
-              "id": "did:web:example.org",
-              "customAttribute": "customValue"
-            }
-          }
+          "businessUUID": "c6d2e689-5aad-4d87-b2d8-b333de285c04",
+          "termsAndConditions" : null
+        }
+        """.trimIndent()
+    )
+
+    // language=json
+    val rejectBusinessExample = jsonObjectValueExampleDescriptorDsl(
+        """
+          {
+          "businessUUID": "c6d2e689-5aad-4d87-b2d8-b333de285c04"
         }
         """.trimIndent()
     )
